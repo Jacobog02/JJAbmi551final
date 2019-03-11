@@ -10,8 +10,8 @@ library(readr)
 ```
 
 ```{r}
-expression <- as.data.frame((read.table("./expression.txt", row.names=1 )))
-subtypes <- read_delim("./subtypes.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
+expression <- as.data.frame((read.table("../data/expression.txt", row.names=1 )))
+subtypes <- read_delim("../data/subtypes.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
 ```
 
 ```{r}
