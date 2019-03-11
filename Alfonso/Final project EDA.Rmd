@@ -1,0 +1,28 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(ggplot2)
+library(skimr)
+library(here)
+library(readr)
+```
+
+```{r}
+expression <- as.data.frame((read.table("./expression.txt", row.names=1 )))
+subtypes <- read_delim("./subtypes.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
