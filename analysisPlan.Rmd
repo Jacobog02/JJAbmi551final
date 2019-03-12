@@ -35,20 +35,31 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Methods
 
-### Neural net
-
-
-
-<br>
-
 ### LDA/QDA
 
+- lower complexity model compared to neural net
+- low bias, high variance
+- Naive approach with LDA and compare that to QDA to test model performance by increasing the model complexity 
 
+- Potential method of normalization: 
 
 <br>
 
 ### Random forest / ensembl method
 
-
+- bagging methodology: random sampling to avoid overfitting
+- higher complexity model
+-high bias, low variance
 
 <br>
+
+### Neural net
+
+- high complexity model 
+- high bias, low variance
+
+<br>
+
+### SVM
+
+- ??? maybe? 
