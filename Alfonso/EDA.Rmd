@@ -1,28 +1,45 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 ```{r}
-library(ggplot2)
+library(tidyverse)
+library(infer)
 library(skimr)
-library(here)
-library(readr)
+library(broom)
+library(readxl)
+library(knitr)
+library(moderndive)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(progress)
+library(psych)
+library(knitr)
+library(ggfortify)
+library(glmnet)
+library(glmnetUtils)
+library(caret)
+library(class)
+select <- dplyr::select
+filter <- dplyr::filter
+library(ggplot2)
+library(cowplot)
+library(randomForest)
 ```
 
 ```{r}
+expressionT <- as.data.frame(t(read.table("../data/expression.txt", row.names=1 )))
 expression <- as.data.frame((read.table("../data/expression.txt", row.names=1 )))
 subtypes <- read_delim("../data/subtypes.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
 ```
 
 ```{r}
+str(expressionT)
 
 ```
 
-```{r}
 
-```
-
-```{r}
-
-```
 

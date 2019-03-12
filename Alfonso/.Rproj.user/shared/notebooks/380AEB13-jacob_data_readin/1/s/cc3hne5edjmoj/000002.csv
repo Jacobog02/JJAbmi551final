@@ -1,0 +1,15 @@
+"0","```r
+full <- names(expression)
+truth_name <- rownames(truth_set)
+exp_idx <- bool_idx(full,truth_name)
+expression <- expression[,exp_idx]
+dim(test_exp)
+```"
+"1","[1] 18632    25
+"
+"0","```r
+# I will also seperate the subtypes this way. 
+sub_names <- subtypes %>% pull(cellline)
+sub_idx <- bool_idx(sub_names,truth_name)
+subtypes <- subtypes[sub_idx,]
+```"

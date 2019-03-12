@@ -1,0 +1,11 @@
+"0","```r
+subtypes %>% glimpse()
+```"
+"1","Observations: 39
+Variables: 2
+$ cellline [3m[38;5;246m<chr>[39m[23m \"184A1\", \"600MPE\", \"AU565\", \"...
+$ subtype  [3m[38;5;246m<chr>[39m[23m \"Normal-like\", \"Luminal\", \"Lu...
+"
+"0","```r
+subtypes %>% distinct(subtype)
+```"
