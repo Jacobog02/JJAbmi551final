@@ -11,6 +11,7 @@ df_print: paged
 
 ```{r libs, warning=FALSE, message=FALSE}
 library(tidyverse)
+library(skimr)
 ```
 
 <br><br>
@@ -214,8 +215,6 @@ for (i in 1:length(observ)){
   qqnorm(test_exp[,i], main=observ[i])
 }
 ```
-
-<br>
 
 ### Looking at the cell lines based on subtype
 
