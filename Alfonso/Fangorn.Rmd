@@ -3,6 +3,7 @@ title: "Fangorn"
 output: html_notebook
 ---
 ```{r}
+set.seed(25000)
 library(tidyverse)
 library(infer)
 library(skimr)
@@ -28,7 +29,22 @@ library(cowplot)
 library(randomForest)
 ```
 
-```{r}
+```{r import}
 exp <- as.data.frame(read.table("../data/mergedExpression.txt", row.names=1 ))
+truthSet <-  as.data.frame((read.table("../data/training_set_answers.txt", row.names=1 )))
+```
+
+```{r collum add}
+#straping the first column of the truth set to the tree
+truthSet
+tree1<-cbind(drug=truthSet[,1],exp)
+tree1
+```
+
+```{r}
+roots<-as.matrix(tree1)
+data.imputed <- rfImpute(drug ~ ., data = roots, iter=4)
+model <- randomForest(drug ~ ., data=data.imputed, proximity=TRUE)
+ 
 ```
 
