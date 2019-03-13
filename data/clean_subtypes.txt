@@ -11,7 +11,9 @@ HCC1937	Basal
 HCC2185	Luminal
 HCC70	Basal
 HS578T	Claudin-low
+MCF10F	Normal-like
 MDAMB134VI	Luminal
+MDAMB175VII	Luminal
 MDAMB415	Luminal
 MDAMB453	Luminal
 SUM1315MO2	Claudin-low
@@ -22,5 +24,3 @@ SUM52PE	Luminal
 T47D	Luminal
 ZR751	Luminal
 ZR75B	Luminal
-MCF10F	Normal-like
-MDAMB175VII	Luminal

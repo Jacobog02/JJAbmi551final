@@ -170,6 +170,24 @@ Now we will seperate the data into a tab seperated file for each of the 3 input 
 
 Note: the truth set does not need to be modified as it includes all of the cell lines with known outcomes on drug responsiveness. 
 
+
+## Sorting Cleaned Data
+
+Now that we have the clean subsectioned data we will want to make sure that the cell lines match across all tables. 
+
+```{r sort_all}
+expression <- with(expression,  expression[ , order(names(expression))])
+subtypes <- with(subtypes,  subtypes[order(cellline) , ])
+truth_set <- with(truth_set,  truth_set[order(rownames(truth_set)) , ])
+
+# Check to make sure all cellines match
+names(expression)
+subtypes %>% pull(cellline)
+rownames(truth_set)
+```
+
+
+
 ```{r write_out}
 # Double check all the dataframs have correct observations via the dimensions
 dim(expression)
@@ -182,6 +200,7 @@ write.table(expression, file= '../data/clean_expression.txt', sep= '\t', na = 'N
 write_tsv(subtypes, '../data/clean_subtypes.txt', na = "NA")
 # Write training set answers
 write.table(truth_set, '../data/clean_training_answers.txt', sep= '\t', na = "NA")
+
 ```
 
 We checked the dimensions of the edited files to make sure that we only captured the cell lines with known drug responses to build our classifier. There should be only 25 observations, which we see. This means that we subsectioned out data correctly so we wrote it out to new files to build our classifier
@@ -191,15 +210,25 @@ We checked the dimensions of the edited files to make sure that we only captured
 # New Import Commands 
 
 ```{r check_write, message=FALSE}
-test_exp <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
 
-test_sub <- read_tsv("../data/clean_subtypes.txt")
+# Read in the cleaned expression data
+expression <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
 
-test_truth <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+# Read in the subtype data
+subtypes <- read_tsv("../data/clean_subtypes.txt")
 
-dim(test_exp)
-dim(test_sub)
-dim(test_truth)
+# Read in the truth set
+truth_set <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+
+
+# Create merged feature set
+featureSet<-cbind(subtypes[,2],t(expression))
+
+dim(expression)
+dim(subtypes)
+dim(truth_set)
+dim(featureSet)
 ```
 
 # Extended EDA on Cleaned Data
@@ -207,12 +236,12 @@ dim(test_truth)
 ### Variance in the data
 
 ```{r hist_qqnorm_by_observ}
-observ <- (colnames(test_exp))
+observ <- (colnames(expression))
 
 par(mfrow=c(2,2))
 for (i in 1:length(observ)){
-  hist(test_exp[,i], main = observ[i], xlab='')
-  qqnorm(test_exp[,i], main=observ[i])
+  hist(expression[,i], main = observ[i], xlab='')
+  qqnorm(expression[,i], main=observ[i])
 }
 ```
 
