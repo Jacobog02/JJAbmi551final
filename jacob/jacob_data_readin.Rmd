@@ -205,12 +205,13 @@ dim(test_truth)
 
 ### Variance in the data
 
-```{r qqnorm}
-par(mfrow=c(2,2)) 
+```{r hist_qqnorm_by_observ}
+observ <- (colnames(test_exp))
 
-for (i in ncol(test_exp)){
-  hist(test_exp$(i))
-  qqnorm(test_exp$i)
+par(mfrow=c(2,2))
+for (i in 1:length(observ)){
+  hist(test_exp[,i], main = observ[i], xlab='')
+  qqnorm(test_exp[,i], main=observ[i])
 }
 ```
 
