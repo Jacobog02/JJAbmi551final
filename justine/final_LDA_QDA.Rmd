@@ -1,0 +1,11 @@
+---
+title: "Final - LDA & QDA"
+author: "Justine Nguyen"
+date: "March 12, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
