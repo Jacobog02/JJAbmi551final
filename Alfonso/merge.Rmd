@@ -16,13 +16,14 @@ test_truth <-  as.data.frame((read.table("../data/clean_training_answers.txt", r
 
 ```{r}
 
-test_sub
-testSort <- with(test_sub,  test_sub[order(cellline) , ])
+exp_Sort <- with(test_exp,  test_exp[order(rownames(test_exp)) , ])
+sub_Sort <- with(test_sub,  test_sub[order(cellline) , ])
+truth_Sort <- with(test_truth,  test_truth[order(rownames(test_truth)) , ])
 
 ```
 
 ```{r}
-merged<-cbind(testSort,test_exp)
+merged<-cbind(testSort[,2],test_exp)
 #merged
 write.table(merged, file= '../data/mergedExpression.txt', sep= '\t', na = 'NA')
 ```
