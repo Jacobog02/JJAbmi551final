@@ -1,0 +1,15 @@
+"0","slices <- 8 "
+"0","idx <- rep(1:slices, each = ceiling(nrow(roots)/slices))"
+"0","idx <- idx[1:nrow(roots)]"
+"0","imputedData <- do.call('rbind', lapply(1:slices, function(SLICE){"
+"0","    print(SLICE)"
+"0","    require(randomForest)"
+"0","    rfImpute(roots[idx == slice, ])"
+"0","  }))"
+"1","[1]"
+"1"," 1"
+"1","
+"
+"2","Error in idx == slice : 
+  comparison (1) is possible only for atomic and list types
+"

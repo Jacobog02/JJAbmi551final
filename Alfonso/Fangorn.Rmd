@@ -4,41 +4,51 @@ output: html_notebook
 ---
 ```{r}
 set.seed(25000)
-library(tidyverse)
-library(infer)
-library(skimr)
-library(broom)
-library(readxl)
-library(knitr)
-library(moderndive)
-library(dplyr)
-library(ggplot2)
-library(GGally)
-library(progress)
-library(psych)
-library(knitr)
-library(ggfortify)
-library(glmnet)
-library(glmnetUtils)
-library(caret)
-library(class)
-select <- dplyr::select
-filter <- dplyr::filter
+
 library(ggplot2)
 library(cowplot)
 library(randomForest)
+library(parallel)
+#library(parLapply)
 ```
 
 ```{r import}
-exp <- as.data.frame(read.table("../data/mergedExpression.txt", row.names=1 ))
-truthSet <-  as.data.frame((read.table("../data/training_set_answers.txt", row.names=1 )))
+# Read in the cleaned expression data
+expression <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+
+# Read in the subtype data
+subtypes <- read_tsv("../data/clean_subtypes.txt")
+
+# Read in the truth set
+truth_set <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+
+
+# Create merged feature set
+featureSet<-cbind(subtypes[,2],t(expression))
 ```
+
 
 ```{r collum add}
 #straping the first column of the truth set to the tree
-truthSet
-tree1<-cbind(drug=truthSet[,1],exp)
-tree1
+truth<-as.matrix(truth_set)
+feature<-as.matrix(featureSet)
+#tree1<-cbind(drug=truth_set[,1],featureSet)
+#tree1
+#roots<-as.matrix(tree1)
+```
+
+```{r}
+slices <- 8 
+idx <- rep(1:slices, each = ceiling(nrow(feature)/slices))
+idx <- idx[1:nrow(feature)]
+
+
+imputedData <- do.call('rbind', lapply(1:slices, function(SLICE){
+    print(SLICE)
+    require(randomForest)
+    rfImpute(feature[idx == slice, ],truth[idx == slice])
+  }))
 ```
 
 ```{r}
