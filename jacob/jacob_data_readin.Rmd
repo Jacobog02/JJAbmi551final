@@ -241,9 +241,13 @@ dim(featureSet)
 
 ```{r}
 featureSet %>% count(subtype)
+
+featureSet%>% filter(subtype=='Normal-like')
 ```
 
 
+split luminal into three groups - 4,5,5
+because we have unbalanced data in the groups
 
 ### Variance in the data
 
