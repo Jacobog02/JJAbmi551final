@@ -1,0 +1,5 @@
+"0","```r
+# phenoData(x) retries phenotype data from x 
+# pData makes it into data frame. 
+pData(phenoData(x))
+```"

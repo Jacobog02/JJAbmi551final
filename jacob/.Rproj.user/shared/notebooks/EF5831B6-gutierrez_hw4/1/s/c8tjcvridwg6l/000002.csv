@@ -1,0 +1,31 @@
+"0","```r
+x$genotype
+```"
+"1","  [1] WT      WT      WT      WT     
+  [5] WT      WT      WT      WT     
+  [9] WT      WT      WT      WT     
+ [13] WT      WT      WT      WT     
+ [17] WT      WT      WT      WT     
+ [21] WT      WT      WT      WT     
+ [25] WT      WT      WT      WT     
+ [29] WT      WT      WT      WT     
+ [33] WT      WT      WT      WT     
+ [37] WT      WT      WT      WT     
+ [41] WT      WT      WT      WT     
+ [45] WT      WT      WT      WT     
+ [49] WT      WT      WT      WT     
+ [53] WT      WT      WT      WT     
+ [57] WT      WT      WT      WT     
+ [61] WT      WT      WT      WT     
+ [65] WT      WT      FGF4-KO FGF4-KO
+ [69] FGF4-KO FGF4-KO FGF4-KO FGF4-KO
+ [73] FGF4-KO FGF4-KO FGF4-KO FGF4-KO
+ [77] FGF4-KO FGF4-KO FGF4-KO FGF4-KO
+ [81] FGF4-KO FGF4-KO FGF4-KO FGF4-KO
+ [85] FGF4-KO FGF4-KO FGF4-KO FGF4-KO
+ [89] FGF4-KO FGF4-KO FGF4-KO FGF4-KO
+ [93] FGF4-KO FGF4-KO FGF4-KO FGF4-KO
+ [97] FGF4-KO FGF4-KO FGF4-KO FGF4-KO
+[101] FGF4-KO
+Levels: FGF4-KO WT
+"

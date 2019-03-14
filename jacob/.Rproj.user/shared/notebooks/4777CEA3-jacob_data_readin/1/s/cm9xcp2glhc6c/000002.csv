@@ -1,0 +1,6 @@
+"0","observ <- (colnames(expression))"
+"0","par(mfrow=c(2,2))"
+"0","for (i in 1:length(observ)){"
+"0","  hist(expression[,i], main = observ[i], xlab='')"
+"0","  qqnorm(expression[,i], main=observ[i])"
+"0","}"

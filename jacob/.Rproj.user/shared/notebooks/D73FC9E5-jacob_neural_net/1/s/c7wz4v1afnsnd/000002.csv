@@ -1,0 +1,6 @@
+"0","# I moved all my functions into an R script to be used by other scripts too!
+source(neural_net_functions.R)
+"
+"2","Error in source(neural_net_functions.R) : 
+  object 'neural_net_functions.R' not found
+"

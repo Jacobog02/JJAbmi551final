@@ -1,0 +1,409 @@
+---
+title: "Jacob Neural Net Final Projects"
+output:
+  html_document:
+    df_print: paged
+---
+## Libraries:
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse) # data manipulation
+library(neuralnet)# neural net library
+library(gridExtra) # for plot function
+library(grid) # for plot function
+
+#library(tidyverse) # data manipulation
+library(made4) #data package
+#library(neuralnet)# neural net library
+#library(e1071) # SVM
+#library(gridExtra) # for plot function
+#library(grid) # for plot function
+
+data(khan)
+```
+
+## Functions:
+
+Below are a bunch of functions I made to conduct cross validation easily and could help with the SVM training.
+
+```{r functions}
+
+# I moved all my functions into an R script to be used by other scripts too!
+# Functions Include: 
+#   scale_data()
+#   E_recode()
+#   perc_acc()
+source('neural_net_functions.R')
+
+# Multiplot code!
+source('jacob_multiplots.R')
+
+
+
+# Here is space for more functions to be debugged and added to the script.
+
+
+
+
+```
+
+## Data import:
+
+```{r clean_data_import, message=FALSE}
+
+# Read in the cleaned expression data
+expression <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+
+# Read in the subtype data
+subtypes <- read_tsv("../data/clean_subtypes.txt")
+
+# Read in the truth set
+truth_set <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+
+
+# Create merged feature set
+featureSet<-cbind(subtypes[,2],t(expression))
+
+dim(expression)
+dim(subtypes)
+dim(truth_set)
+dim(featureSet)
+```
+
+
+
+
+
+
+
+## EDA:
+
+Now looking for missings values 
+```{r}
+apply(khan$train, 2, function(x) sum(is.na(x)))
+apply(khan$test, 2, function(x) sum(is.na(x)))
+summary(khan$train.classes)
+summary(khan$test.classes)
+```
+
+
+No missing values are present and it appears botht he train and test datasets have simmilar distibutions of classes in both dataset. 
+
+
+
+2) [30 points] Using the “neuralnet” package in R, implement a neural network that will distinguish between RMS sample and EWS samples.  This network should have an input node for each of the gene expression values, one hidden layer and one output node. You decide on how many hidden nodes to use and the learning rate. Experimentation is encouraged and a rationale for your choices is required.
+
+___
+
+Subseting the data 
+
+I only want the data that correspond to the two classes I am interested in (RMS, EWS).
+
+
+Now scaling the data to follow the slides:
+I will be applying a scale with the full information following the slides, I will then apply the same scaling parameters to both the train and the test set. 
+```{r subset}
+#Subset trainingdata
+
+# Transpose dataset to Feature Set (so each column is a feature)
+train <- data.frame(t(khan$train))
+
+# Make Vector of the truth_set
+classif <- khan$train.classes
+
+# Append Truthset to Feature set 
+ktrain <- data.frame(cbind(classif,train))
+
+# Now scale the data ( IN this case KIND OF SCALING GOES HERE)
+ktrain <- scale_data(ktrain)
+
+# Now convert the truthset into factors outputing vector.
+E.Ws <- c('EWS','RMS')
+E.W <- ktrain$classif %in% E.Ws
+
+# Mask the truthset into integers instead of strings. 
+# CONSIDER BINARY MASK OR MASKING ALL FEATURES
+ktrain <- ktrain[E.W,]
+ktrain <- E_recode(ktrain)
+
+# Now look at it!
+dim(ktrain)
+head(ktrain[,1:5])
+
+
+
+#Subset Testing Data
+# Same thing
+test <- data.frame(t(khan$test))
+classif <- khan$test.classes
+ktest <- data.frame(cbind(classif,test))
+ktest <- scale_data(ktest)
+E.W <- ktest$classif %in% E.Ws
+ktest <- ktest[E.W,]
+ktest <- E_recode(ktest)
+dim(ktest)
+head(ktest[,1:5])
+```
+
+Now I will proceed to only touch the testing data only when I am fully testing a cross-validated model.
+
+
+
+
+
+
+
+Now scaling the data to follow the slides:
+I will be applying a scale with the full information following the slides, I will then apply the same scaling parameters to both the train and the test set. 
+
+Now CROSS VALIDATING NN using k-fold cross validation with k = 4, The math is easier, ok, and its similar to k=5 I hope.
+
+
+```{r gen_cross_mat}
+set.seed(2019) #set the seed
+n <- names(ktrain) #extract names to build formula
+f <- as.formula(paste('classif ~', paste(n[!n %in% 'classif'], collapse = ' + ')))
+
+
+k_indexs <- sample(seq(nrow(ktrain))) #scamble the indexs in order to conduct k-fold
+nss <- c(1,2,3,4,5,10,20,40,45) # range of hidden layer nodes to explore
+ls <- c(.1,.2,.3,.4,.5,.6,.7,.8,.9,1) # range of learning rates to explore
+ls_len <- length(ls) # length of the learning rate, i made it same as nodes
+zero_ls <- rep(0,ls_len) # empty zero vector to make R happy
+train.acc.mat <- data.frame(zero_ls) #initalize to empty vector to make the raw matrix
+test.acc.mat <- data.frame(zero_ls) # ^^^
+
+
+# Node amount loop (outter most loop)
+for (s in seq(length(nss))){
+  
+  ns <- nss[s] #extract node number
+  
+  
+  train.acc <- zero_ls # inilize the accuracy vectors
+  test.acc <- zero_ls  # ^^^
+  
+  # Learning Rate Loop (middle loop)
+  for (l in seq(ls_len)){
+    lss <- ls[l] #extract the learning rate
+    
+    # Cross validation loop
+    for (i in seq(11)) {
+        
+        if (i == 1){
+          str <- 1 # initalize start index
+          stp <- 4 # initialize stop index
+        }
+        else{
+          #4 fold cross validation I chose this way bc the math was easier
+          str <- str + 4 
+          stp <- stp + 4
+        }
+      
+      k_in <- k_indexs[str:stp] #Pull out the indexs from the shuffled vector
+      
+      # Subsetting the trianing data 
+      fold_cross <- ktrain[k_in,] # Cross validation test set
+      fold_c_truth <- ktrain[k_in,1] # Cross validation test truth
+      fold_train <- ktrain[-k_in,] # Cross-V training data
+      fold_t_truth <- ktrain[-k_in,1] # Cross-V training truth
+    
+      #Note: The ns can be made into multiple layers by c(layer1,layer2)
+
+                       
+      # Do the THING!               
+      nn <- neuralnet(f,data=fold_train, hidden=ns, learningrate = lss, linear.output = F)
+      
+      
+      # compute train predictions
+      train.pr <- neuralnet::compute(nn,fold_train[,2:ncol(fold_train)])
+      train_result <- round(train.pr$net.result)
+      
+      # find train accuracy and append to vector
+      train.a <- perc_acc(train_result, fold_t_truth,11) #11 cross validation loop ave
+      train.acc[l] <- train.acc[l] + train.a
+    
+      #compute test preditctions
+      test.pr <- neuralnet::compute(nn,fold_cross[,2:ncol(fold_cross)])
+      test_result <- round(test.pr$net.result)
+      
+      #find test accuracy and append to vector
+      test.a <- perc_acc(test_result,fold_c_truth,11) #11 cross validation loop ave
+      test.acc[l] <- test.acc[l] + test.a
+      
+     
+  }
+  }
+  # add the accuracy vectors to their matrixes
+  train.acc.mat <- cbind(train.acc.mat,train.acc) 
+  test.acc.mat <- cbind(test.acc.mat,test.acc)
+
+}
+
+# Drop the intializing null row. 
+train.acc.mat <- train.acc.mat[,2:ncol(train.acc.mat)]
+test.acc.mat <- test.acc.mat[,2:ncol(test.acc.mat)]
+```
+
+
+
+Now that I have the training and test matrixes it is time to merge them into one for easy plotting
+
+```{r merge_matrixes}
+#Now merging into one matrix
+organized_matrix <- data.frame(learning_rate = ls)
+
+# Now append the matrixes in order as they appear with node amount. 
+# Train and Test accuracy ae side by side. 
+
+n <- length(train.acc.mat)
+for (i in seq(n)){
+  buffer <- data.frame(train.acc.mat[i],test.acc.mat[i])
+  nodes <- as.character(nss[i])
+  #print(nodes)
+  updated_names <- c(paste('train_nodes_',nodes,sep=''),paste('test_nodes_',nodes,sep = ''))
+  
+  colnames(buffer) <- updated_names
+  
+  organized_matrix <-  cbind(organized_matrix, buffer) 
+}
+
+#Now clean names
+organized_matrix
+
+```
+
+
+Now lets make some plots
+
+first and foremost I found some code that plots a common legend on the ggplot2 github: [link](https://github.com/tidyverse/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs)
+
+At the top I sourced the script 
+
+
+
+Please disregrad the empty plot I cant figure out the bug....
+```{r plot_testing}
+names <- names(organized_matrix)
+
+lr <- names[1] #SHOU<D BE 1 BUT I AM DEBUGGING!!!!!!!!!
+
+# Modifying matrix to have the darn colors
+
+train_ <- rep('train',length(organized_matrix[,2]))
+test_<-  rep('test',length(organized_matrix[,3]))
+
+colors  <- data.frame(train_,test_)
+
+plot_organized_matrix <- cbind(colors,organized_matrix)
+
+
+names <- names(plot_organized_matrix)
+len_n <- length(names)
+
+ggpls <- list()
+
+
+for (i in seq(4,len_n,2)){
+  train_n <- names[i]
+  test_n <- names[i+1]
+  
+  nod <-  strsplit(train_n, split='_')[[1]][3]
+  
+  gorb <- ggplot(plot_organized_matrix) + 
+    geom_point(aes_string(x=lr, y=train_n, color = 'train_')) +
+    geom_line(aes_string(x=lr, y=train_n,color = 'train_')) +
+    geom_point(aes_string(x=lr, y=test_n, color = 'test_')) +
+    geom_line(aes_string(x=lr, y=test_n, color = 'test_')) +
+    xlim(0.01,1.01) + ylim(1.01,.50) +
+    scale_color_manual('',
+                       breaks= c('train','test'),
+                       values = c('darkred','blue')) +
+    #guides(color=FALSE) + # This hides the legends but i found a function that does it
+    theme_classic() +
+    xlab('learning rate') + ylab('percent accuracy') + 
+    labs(title=paste('Nodes:',nod)) 
+    
+  
+  ggpls <- c(ggpls,list(gorb))
+} 
+  
+  
+# Make list of grobs as output from the loop
+
+grid_arrange_shared_legend(ggpls, ncol=3,nrow=3, position = 'right')
+
+print('Title: Percent accruacry for both training and test cross validation set')
+```
+
+Based on this output it is clear that a lower number of nodes offers greater accuracy. Lookat the high amount of nodes graphs it is clear these suck. 
+
+
+
+
+### OPTIMAL PARAMETERS:
+
+nodes: 5
+
+learning rate: .5
+
+This feels right, it allows the test set to misclassify while also not being overfit to the training data. Additionally I wanted to stick to a lower node amount as we do not have enough observations.  
+
+
+But, lets find out!
+
+
+
+3) [20 points] Examine the performance of your net on the test data. Did the net over-fit your training data? How can you tell? Can you tell from the model which genes have the largest influence on the classification (gene names are provided in the khan data object)?
+
+___
+
+using the optimal parameters found during cross-validation
+
+```{r apply_optimal}
+set.seed(2019)
+n <- names(ktrain)
+f <- as.formula(paste('classif ~', paste(n[!n %in% 'classif'], collapse = ' + ')))
+
+nn <- neuralnet(f,data=ktrain, hidden=5, learningrate = .5, linear.output = F, algorithm = 'backprop')
+plot(nn)
+
+
+# compute train predictions
+train.pr <- neuralnet::compute(nn,ktrain[,2:ncol(ktrain)])
+train_result <- round(train.pr$net.result)
+
+# find train accuracy and append to vector
+train.acc <- perc_acc(train_result, ktrain[,1])
+
+
+
+
+  #compute test preditctions
+test.pr <- neuralnet::compute(nn,ktest[,2:ncol(ktest)])
+test_result <- round(test.pr$net.result)
+
+#find test accuracy and append to vector
+test.acc <- perc_acc(test_result,ktest[,1]) 
+
+paste('training accuracy: ', train.acc)
+paste('test accuracy: ', test.acc)
+```
+ 
+
+
+Just using 5 nodes with a learing rate of .5 gives 81% accuracy on the testing data. 
+
+This makes me not trust this at all. 
+
+I created an information leak when I scaled the data using the combined mins and maxes of both the traiing and test set. 
+
+
+But looking at the neuralnet v. svm it appears that it is easier to cross validate the svm but the neuralnet appears to perform better and doesnt overfit to the data if you dont over train the net. 
+
+
+Neuralnets also offers greater interpretablility as you can see which weights offer the greatest influence on the model the greatest. 
+
+
+
+

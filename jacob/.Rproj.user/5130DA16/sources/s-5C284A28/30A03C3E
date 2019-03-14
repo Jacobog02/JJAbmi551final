@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1552507767815.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2093765304",
+    "id" : "30A03C3E",
+    "lastKnownWriteTime" : 1552541569,
+    "last_content_update" : 1552541569467,
+    "path" : "~/OHSU/W_2019/stat_meth/JJAbmi551final/jacob/jacob_data_readin.Rmd",
+    "project_path" : "jacob_data_readin.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "237,8",
+        "scrollLine" : "229",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

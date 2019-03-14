@@ -1,0 +1,12 @@
+"0","```r
+varLabels(x)
+```"
+"1","[1] \"File.name\"            
+[2] \"Embryonic.day\"        
+[3] \"Total.number.of.cells\"
+[4] \"lineage\"              
+[5] \"genotype\"             
+[6] \"ScanDate\"             
+[7] \"sampleGroup\"          
+[8] \"sampleColour\"         
+"

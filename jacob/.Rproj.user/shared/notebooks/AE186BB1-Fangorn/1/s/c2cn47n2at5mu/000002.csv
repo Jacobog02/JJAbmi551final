@@ -1,0 +1,7 @@
+"0","```r
+roots<-as.matrix(tree1)
+#data.imputed <- rfImpute(drug ~ ., data = roots, iter=4)
+model <- randomForest(drug ~ ., data=roots, proximity=TRUE)
+```"
+"1","Error: protect(): protection stack overflow
+"

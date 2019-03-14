@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1552505396497.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "5228276B",
+    "lastKnownWriteTime" : 1552542193,
+    "last_content_update" : 1552542193495,
+    "path" : "~/OHSU/W_2019/stat_meth/JJAbmi551final/jacob/jacob_neural_net.Rmd",
+    "project_path" : "jacob_neural_net.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "242,33",
+        "scrollLine" : "238",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

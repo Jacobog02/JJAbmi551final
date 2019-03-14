@@ -1,0 +1,4 @@
+"0","```r
+E325classes <- ifelse(WTdata$sampleGroup == 'E3.25', 1, 0)
+data.frame(WTdata$sampleGroup, E325classes)
+```"

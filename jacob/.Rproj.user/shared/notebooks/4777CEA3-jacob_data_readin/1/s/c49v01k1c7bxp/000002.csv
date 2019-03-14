@@ -1,6 +1,0 @@
-"0","expression <- as.data.frame((read.table(""../data/expression.txt"", row.names=1 )))"
-"0","# Needed as the first two column names start with a number so they get mucked up."
-"0","names(expression)[1] <- ""184A1"""
-"0","names(expression)[2] <- ""600MPE"""
-"0","subtypes <- read_delim(""../data/subtypes.txt"", ""\t"", escape_double = FALSE, trim_ws = TRUE)"
-"0","truth_set <-  as.data.frame((read.table(""../data/training_set_answers.txt"", row.names=1 )))"

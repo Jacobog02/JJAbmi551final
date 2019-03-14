@@ -1,0 +1,3 @@
+"0","exp_Sort <- with(test_exp,  test_exp[order(rownames(test_exp)) , ])"
+"0","sub_Sort <- with(test_sub,  test_sub[order(cellline) , ])"
+"0","truth_Sort <- with(test_truth,  test_truth[order(rownames(test_truth)) , ])"
