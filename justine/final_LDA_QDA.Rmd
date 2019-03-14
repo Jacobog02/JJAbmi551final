@@ -9,3 +9,58 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r library, warning=FALSE}
+library(tidyverse)
+library(readr)
+```
+
+
+```{r readData}
+# Read in the cleaned expression data
+expression <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+
+# Read in the subtype data
+subtypes <- read_tsv("../data/clean_subtypes.txt")
+
+# Read in the truth set
+truth_set <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+
+
+# Create merged feature set
+featureSet<-cbind(subtypes[,2],t(expression))
+
+dim(expression)
+dim(subtypes)
+dim(truth_set)
+dim(featureSet)
+```
+
+```{r parseTest}
+
+```
+
+
+```{r ldaModel}
+featureSetOutcome <- cbind(truth_set$CGC.11047, featureSet)
+library(MASS)
+lda.fit <- lda(truth_set$CGC.11047~subtype, 
+               data = featureSetOutcome,
+               CV=TRUE)
+
+lda.fit
+
+plot(lda.fit)
+```
+
+```{r qdaModel}
+qda.fit <- qda(truth_set$CGC.11047~subtype, 
+               data=featureSetOutcome)
+
+
+da.fit
+
+plot(qda.fit)
+```
+
+DATA AUGMENTATION
