@@ -261,3 +261,36 @@ for (i in 1:length(observ)){
 
 <br>
 
+
+
+
+
+
+
+
+
+
+
+
+1.	Data Quality: (40 points)
+
+o	Checked for internal consistency between the provided metadata and the full data set.
+OK
+o	Reported any missing or duplicate data.
+o	Evidence of at least one outside source used to understand the data attributes, and how they may have been generated (extra credit: citation provided).
+o	Requested any additional study-specific attributes (i.e. how, where, when, by whom, and why the data were originally collected) from the original authors. 
+
+2.	Exploratory Data Analysis: (30 points)
+
+o	Assessed the distribution of the attributes using descriptive statistics (i.e. center, spread, shape) and at least one stand-alone visualization (e.g. boxplot, histogram, Q-Q plot). Included a corresponding written rationale for including the visualization and an interpretation. (Note: In a "stand-alone" visualization, the axes, data and/or model are all labeled.)
+o	Assessed the relationship (or correlation) between at least two attributes using a stand-alone visualization (e.g. scatterplot, trellis plot, conditional histogram). Included a corresponding written rationale for including the visualization and an interpretation.
+-5 The correlation matrix is great, though it is good practice to actually plot the observations to inspect them visually. (For example, if one or two data points are driving the correlation, you would want to know this.)  
+-5 No rationale or interpretation of any of the correlations uncovered in EDA. Why is it important to know which attributes are highly correlated?
+3.	Feasibility: (20 points)
+
+o	Described at least one potential issue with using these data for secondary analysis to build a classification model for predicting diagnosis class, including any assumptions.
+OK
+o	Provided at least one question for the original authors needed to better assess feasibility.
+OK, provided reasoning in the discussion of the distributions of the attributes addressing why a model using these attributes would be feasible.
+
+
