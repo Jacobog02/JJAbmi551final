@@ -19,6 +19,11 @@ library(made4) #data package
 #library(grid) # for plot function
 
 data(khan)
+
+
+#library(Biobase)  # Bioconductor
+library(genefilter)  # for rowVars() and other functions for feature selection.
+
 ```
 
 ## Functions:
@@ -62,44 +67,62 @@ truth_set <-  as.data.frame((read.table("../data/clean_training_answers.txt", ro
 
 
 # Create merged feature set
-featureSet<-cbind(subtypes[,2],t(expression))
+#featureSet<-cbind(subtypes[,2],t(expression))
 
 dim(expression)
 dim(subtypes)
 dim(truth_set)
-dim(featureSet)
+#dim(featureSet)
 ```
 
 
-
-
-
-
-
-## EDA:
-
-Now looking for missings values 
-```{r}
-apply(khan$train, 2, function(x) sum(is.na(x)))
-apply(khan$test, 2, function(x) sum(is.na(x)))
-summary(khan$train.classes)
-summary(khan$test.classes)
-```
-
-
-No missing values are present and it appears botht he train and test datasets have simmilar distibutions of classes in both dataset. 
-
-
-
-2) [30 points] Using the “neuralnet” package in R, implement a neural network that will distinguish between RMS sample and EWS samples.  This network should have an input node for each of the gene expression values, one hidden layer and one output node. You decide on how many hidden nodes to use and the learning rate. Experimentation is encouraged and a rationale for your choices is required.
-
+## Analysis Plan:
 ___
 
-Subseting the data 
+I intend to use the neuralnet package in order to build my neural net mode. 
+This code is modified from my homework 5 assignment so I will added additional annotations and 
 
-I only want the data that correspond to the two classes I am interested in (RMS, EWS).
+
+## Feature Selection 
+```{r}
+expVar <- (rowVars(expression))
+hist(expVar)
+expVar <- as.data.frame(expVar)
+names(expVar) <- c('variance')
+
+paste('max variance:', max(expVar[,1]))
+paste('min variance:', min(expVar[,1]))
+
+quantile(expVar$variance, seq(0,1,by=0.1))
+```
 
 
+90% of the training data contains a variance less than 1!!!! This indicates that these genes have low power in predicting response. 
+
+Based on my NN method which can handle noisy data I will only include the top 10% variable features to keep. 
+
+
+```{r}
+# Make boolean index
+quant_idx <- expVar$variance > .98099 
+
+# subset with index 
+features.1 <- expression[quant_idx,]
+
+dim(features.1)
+```
+
+Excellent we are now down to a relatively managable 1864 features. 
+
+SUBTYPE FEATURE SELECTION GOES HERE
+
+
+OR TWO BOOLEAN INDEXS TOGETHER TO GET THE ADDITION OF THE NORMAL SUBTYPSE
+
+
+
+
+##  Data Normalization
 Now scaling the data to follow the slides:
 I will be applying a scale with the full information following the slides, I will then apply the same scaling parameters to both the train and the test set. 
 ```{r subset}
@@ -158,6 +181,8 @@ I will be applying a scale with the full information following the slides, I wil
 
 Now CROSS VALIDATING NN using k-fold cross validation with k = 4, The math is easier, ok, and its similar to k=5 I hope.
 
+## Naive Model Approach: 
+
 
 ```{r gen_cross_mat}
 set.seed(2019) #set the seed
@@ -212,6 +237,7 @@ for (s in seq(length(nss))){
 
                        
       # Do the THING!               
+      # CHECK THE ALGORRITHM, 
       nn <- neuralnet(f,data=fold_train, hidden=ns, learningrate = lss, linear.output = F)
       
       
@@ -251,25 +277,53 @@ Now that I have the training and test matrixes it is time to merge them into one
 
 ```{r merge_matrixes}
 #Now merging into one matrix
-organized_matrix <- data.frame(learning_rate = ls)
+final_matrix <-  data.frame(learning_rate = ls)
 
-# Now append the matrixes in order as they appear with node amount. 
+
+id_list <-  list( nodes= nss, keys= c('train_nodes_', 'test_nodes_'))
+# Now append the matrixes in order as they appear node amount. 
 # Train and Test accuracy ae side by side. 
 
-n <- length(train.acc.mat)
-for (i in seq(n)){
-  buffer <- data.frame(train.acc.mat[i],test.acc.mat[i])
-  nodes <- as.character(nss[i])
-  #print(nodes)
-  updated_names <- c(paste('train_nodes_',nodes,sep=''),paste('test_nodes_',nodes,sep = ''))
+# Make function make it take 3 arguements ( seed frame (The shared x axis or something), matrix 1, Matrix2 )
+# This makes the two matrixes consecutive 
+# Idenfitier = nns which is the  number of nodes vector. 
+
+mat_zip <- function( mat1, mat2, id_list=list()) {
+  n <- length(mat1)
+  k <- nrow(mat1)
   
-  colnames(buffer) <- updated_names
+  if (!length(id_list)){
+    id_list = list(nodes = seq(n), keys = c('train_key_"','test_key_')) 
+  }
   
-  organized_matrix <-  cbind(organized_matrix, buffer) 
+  
+  for (i in seq(n)){
+    
+    buffer <- data.frame(mat1[i],mat2[i])
+    nodes <- as.character(id_list$nodes[i])
+    #print(nodes)
+    updated_names <- c(paste(id_list$keys[1],nodes,sep=''),paste(id_list$keys[2],nodes,sep = ''))
+    
+    colnames(buffer) <- updated_names
+    if (i == 1){
+      organized_matrix <- buffer
+    } 
+    else{
+    organized_matrix <-  cbind(organized_matrix, buffer) 
+    }
+}
+  
+  #Now clean names
+  return(organized_matrix)
 }
 
-#Now clean names
-organized_matrix
+
+
+# testing function
+organized_matrix <- mat_zip(train.acc.mat, test.acc.mat, id_list)
+
+final_matrix <- cbind( final_matrix, organized_matrix)
+
 
 ```
 
@@ -284,55 +338,77 @@ At the top I sourced the script
 
 Please disregrad the empty plot I cant figure out the bug....
 ```{r plot_testing}
-names <- names(organized_matrix)
+# Get the labels for axies
+names <- names(final_matrix)
 
-lr <- names[1] #SHOU<D BE 1 BUT I AM DEBUGGING!!!!!!!!!
+# I CATCH THE LEARNING RATE HERE BC ITS EASY!!!! THE NAME IS NEEDED FOR aes_string(). 
+lr <- names[1] #THis is the learning rate so the parameter
 
-# Modifying matrix to have the darn colors
+###       Modifying matrix to have the darn colors
 
-train_ <- rep('train',length(organized_matrix[,2]))
-test_<-  rep('test',length(organized_matrix[,3]))
+# Makes a vector the size of the rows in matrix for plotting
+train_ <- rep('train',length(final_matrix[,2]))
+test_<-  rep('test',length(final_matrix[,3]))
 
-colors  <- data.frame(train_,test_)
+# Massage two vectors into data.frame for cbind
+color_factors  <- data.frame(train_,test_)
+# double bam
+plot_organized_matrix <- cbind(color_factors,final_matrix)
 
-plot_organized_matrix <- cbind(colors,organized_matrix)
 
-
+# Get names for all columns in the matrix. 
 names <- names(plot_organized_matrix)
-len_n <- length(names)
+len_n <- length(names) # length tells you how far to go 
 
-ggpls <- list()
+### BEWARE: I added the colors and learning rate to the matrix and theres the full dataset after. 
+### basically start the sequence when the repetions happen, and its gotta be this way bc its easy if they are in one matrix
+
+ggpls <- list() # Initialize gorb object list. 
 
 
-for (i in seq(4,len_n,2)){
+
+# Loop over entire matrix length
+####  BEWARE: Its happening!
+data_start <- 4
+for (i in seq(data_start,len_n,2)){
+  
+  # Two names of the sequenctial columnes
   train_n <- names[i]
   test_n <- names[i+1]
   
-  nod <-  strsplit(train_n, split='_')[[1]][3]
+  nod <-  strsplit(train_n, split='_')[[1]][3] # Find the node about I arbitrariy chose train_n
   
+  # Assemble the BOY! gorb is what the data object is called? idk cs people need to chill
   gorb <- ggplot(plot_organized_matrix) + 
+    # Plot the training outcomes
     geom_point(aes_string(x=lr, y=train_n, color = 'train_')) +
     geom_line(aes_string(x=lr, y=train_n,color = 'train_')) +
+    # Plot the test outcomes
     geom_point(aes_string(x=lr, y=test_n, color = 'test_')) +
     geom_line(aes_string(x=lr, y=test_n, color = 'test_')) +
+    # Now scale the figure (the baby one to be stitched)
     xlim(0.01,1.01) + ylim(1.01,.50) +
+    #I think this forces the colors to happen!!!!!
     scale_color_manual('',
+                       # Must match the names in the color section of the matrix (YO CATCH THE NAMES NEXT TIME)
                        breaks= c('train','test'),
+                       # Values can be a list of any ggplot color (THINK HTML)
                        values = c('darkred','blue')) +
     #guides(color=FALSE) + # This hides the legends but i found a function that does it
-    theme_classic() +
+    theme_classic() + # Pretty
+    # Label the plots (again the babies)
     xlab('learning rate') + ylab('percent accuracy') + 
     labs(title=paste('Nodes:',nod)) 
     
-  
+  # append to list yay!
   ggpls <- c(ggpls,list(gorb))
 } 
   
   
 # Make list of grobs as output from the loop
-
 grid_arrange_shared_legend(ggpls, ncol=3,nrow=3, position = 'right')
 
+# FIGURE OUT HOW TO PUT THE TITLE IN
 print('Title: Percent accruacry for both training and test cross validation set')
 ```
 
