@@ -126,21 +126,32 @@ Since, there are only 25 cell lines present in our training truth set, we will o
 
 ## Processing the Clean Data set
 
-Use the truth_set (cell lines with known outcomes only) to create a vector to decide if the expression set data is kept. 
+Use the truth_set (cell lines with known outcomes only) to create a vector to decide if the expression set data is kept for training. The rest are the test dataset used to generate a prediction matrix.  
 
 ```{r clean_exp}
 full <- names(expression) # ALL observations in the given expression dataset
 truth_name <- rownames(truth_set) # observations with known outcomes (based on the truth set)
 exp_idx <- bool_idx(full,truth_name) # create indices
 
-expression <- expression[,exp_idx] # Pyll out the new expression set with only observations that have a known outcome
-dim(expression) # Check the dimensions 
+train_expr <- expression[,exp_idx] # Pyll out the new expression set with only observations that have a known outcome
+dim(train_expr) # Check the dimensions 
 
 # I will also seperate the subtypes this way. This way we are only looking at the cell lines with known outcomes
 sub_names <- subtypes %>% pull(cellline)
 sub_idx <- bool_idx(sub_names,truth_name)
-subtypes <- subtypes[sub_idx,]
-dim(subtypes)
+train_subs <- subtypes[sub_idx,]
+dim(train_subs)
+```
+
+
+Now I will subset the test data use the boolean indexes I generated in the last codeblock.
+
+```{r subset_test}
+test_expr <- expression[,!exp_idx]
+test_subs <- subtypes[!sub_idx,]
+
+dim(test_expr)
+dim(test_subs)
 ```
 
 Originally only 24 samples were retained but upon futher investiagtion there was an X in front of all cellines with integers as the first character. 
@@ -176,32 +187,72 @@ Note: the truth set does not need to be modified as it includes all of the cell 
 Now that we have the clean subsectioned data we will want to make sure that the cell lines match across all tables. 
 
 ```{r sort_all}
-expression <- with(expression,  expression[ , order(names(expression))])
-subtypes <- with(subtypes,  subtypes[order(cellline) , ])
+# Sort train expression
+train_expr <- with(train_expr,  train_expr[ , order(names(train_expr))])
+
+# Sort train subtype
+train_subs <- with(train_subs,  train_subs[order(cellline) , ])
+
+# Sort truth
 truth_set <- with(truth_set,  truth_set[order(rownames(truth_set)) , ])
 
+
+##    Testing feature set
+# Sort test expression data
+test_expr <- with(test_expr,  test_expr[ , order(names(test_expr))])
+
+# Sort test subtypes
+test_subs <- with(test_subs,  test_subs[order(cellline) , ])
+
+
+
 # Check to make sure all cellines match
-names(expression)
-subtypes %>% pull(cellline)
+names(train_expr)
+train_subs %>% pull(cellline)
 rownames(truth_set)
+
+names(test_expr)
+test_subs %>% pull(cellline)
 ```
 
 
 
-```{r write_out}
+```{r write_out_train}
 # Double check all the dataframs have correct observations via the dimensions
-dim(expression)
-dim(subtypes)
+dim(train_expr)
+dim(train_subs)
 dim(truth_set)
 
 # Write expression
-write.table(expression, file= '../data/clean_expression.txt', sep= '\t', na = 'NA')
+write.table(train_expr, file= '../data/clean_expression.txt', sep= '\t', na = 'NA')
 # Write subtypes
-write_tsv(subtypes, '../data/clean_subtypes.txt', na = "NA")
+write_tsv(train_subs, '../data/clean_subtypes.txt', na = "NA")
 # Write training set answers
 write.table(truth_set, '../data/clean_training_answers.txt', sep= '\t', na = "NA")
 
 ```
+
+
+```{r write_out_test}
+# Double check all the dataframs have correct observations via the dimensions
+dim(test_expr)
+dim(test_subs)
+
+# Write expression
+write.table(test_expr, file= '../data/clean_test_expression.txt', sep= '\t', na = 'NA')
+# Write subtypes
+write_tsv(test_subs, '../data/clean_test_subtypes.txt', na = "NA")
+
+
+
+### Reading in the data:
+test_expr <- as.data.frame((read.table("../data/clean_test_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+
+# Read in the subtype data
+test_subs <- read_tsv("../data/clean_test_subtypes.txt")
+```
+
 
 We checked the dimensions of the edited files to make sure that we only captured the cell lines with known drug responses to build our classifier. There should be only 25 observations, which we see. This means that we subsectioned out data correctly so we wrote it out to new files to build our classifier
 
@@ -212,6 +263,7 @@ We checked the dimensions of the edited files to make sure that we only captured
 ```{r clean_data_import, message=FALSE}
 
 # Read in the cleaned expression data
+# NOTE: data has features are ROWS when reading it from the flat file.
 expression <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
 rownames(expression)[1] <- '184A1'# Rename the only integer name
 
@@ -233,9 +285,6 @@ dim(featureSet)
 
 # Extended EDA on Cleaned Data
 
-## ADD CLUSTERING HERE
-
-> HERE!!
 
 ### Subtype by Cell line
 
