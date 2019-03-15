@@ -1,0 +1,3 @@
+"0","#tree optimization for 20% tree"
+"0","ggplot(data=oob.error.fangorn9, aes(x=Trees, y=Error)) +"
+"0","  geom_line(aes(color=Type))+ggtitle(""forest of 20% variance"")"

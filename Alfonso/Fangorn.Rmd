@@ -47,6 +47,7 @@ paste('min variance:', min(expVar[,1]))
 expVar %>% count((variance > '0.5'))
 top20 <- expVar$variance > 0.5 
 root20 <- expression[top20,]
+root20<-data.frame(t(root20))
 dim(root20)
 
 
@@ -66,7 +67,7 @@ dim(root10)
 expVar %>% count((variance > '1.5'))
 top5 <- expVar$variance > 1.5 
 root5 <- expression[top5,]
-root5<-data.frame(t(root10))
+root5<-data.frame(t(root5))
 dim(root5)
 
 
@@ -296,3 +297,1124 @@ fangorn2 <- randomForest( drug∼.,data=tree220  ,mtry=2,ntree=500)
 fangorn2
 ```
 
+#forest drug 3
+```{r drug 3 roots}
+#straping the first column of the truth set to the tree
+tree320<-cbind(drug=truth_set[,3],root20)
+tree320<-clean_names(tree320)
+tree320$drug<-factor(tree320$drug)
+
+
+tree310<-cbind(drug=truth_set[,3],root10)
+tree310<-clean_names(tree310)
+tree310$drug<-factor(tree310$drug)
+
+
+tree305<-cbind(drug=truth_set[,3],root5)
+tree305<-clean_names(tree305)
+tree305$drug<-factor(tree305$drug)
+
+```
+```{r primary run forrest drug 3}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest3 <- randomForest( drug∼.,data=tree305  ,mtry=3,ntree=1000)
+oldForest3
+
+mirkwood3 <- randomForest( drug∼.,data=tree310  ,mtry=3,ntree=1000)
+mirkwood3
+
+fangorn3 <- randomForest( drug∼.,data=tree320  ,mtry=3,ntree=500)
+fangorn3
+
+```
+
+```{r tree optimization drug3}
+#tree optimization for 5% tree
+oob.error.oldForest3 <- data.frame(
+  Trees=rep(1:nrow(oldForest3$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest3$err.rate)),
+  Error=c(oldForest3$err.rate[,"OOB"],
+    oldForest3$err.rate[,"1"],
+    oldForest3$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood3 <- data.frame(
+  Trees=rep(1:nrow(mirkwood3$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood3$err.rate)),
+  Error=c(mirkwood3$err.rate[,"OOB"],
+    mirkwood3$err.rate[,"1"],
+    mirkwood3$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn3<- data.frame(
+  Trees=rep(1:nrow(fangorn3$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn3$err.rate)),
+  Error=c(fangorn3$err.rate[,"OOB"],
+    fangorn3$err.rate[,"1"],
+    fangorn3$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest3, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood3, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn3, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+
+```{r split optimization for drug 3}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree305, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree310, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree320, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+
+```{r final paramaters drug3}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest2 <- randomForest( drug∼.,data=tree205  ,mtry=10,ntree=1000)
+oldForest2
+
+mirkwood2 <- randomForest( drug∼.,data=tree210  ,mtry=8,ntree=1000)
+mirkwood2
+
+fangorn2 <- randomForest( drug∼.,data=tree220  ,mtry=6,ntree=500)
+fangorn2
+```
+
+#drug 4
+
+```{r drug 4 roots}
+#straping the first column of the truth set to the tree
+tree420<-cbind(drug=truth_set[,4],root20)
+tree420<-clean_names(tree420)
+tree420$drug<-factor(tree420$drug)
+
+
+tree410<-cbind(drug=truth_set[,4],root10)
+tree410<-clean_names(tree410)
+tree410$drug<-factor(tree410$drug)
+
+
+tree405<-cbind(drug=truth_set[,4],root5)
+tree405<-clean_names(tree405)
+tree405$drug<-factor(tree405$drug)
+
+```
+
+```{r primary run forrest drug 4}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest4 <- randomForest( drug∼.,data=tree405  ,mtry=3,ntree=500)
+oldForest4
+
+mirkwood4 <- randomForest( drug∼.,data=tree410  ,mtry=3,ntree=500)
+mirkwood4
+
+fangorn4 <- randomForest( drug∼.,data=tree420  ,mtry=3,ntree=500)
+fangorn4
+
+```
+
+```{r tree optimization drug 4}
+#tree optimization for 5% tree
+oob.error.oldForest4 <- data.frame(
+  Trees=rep(1:nrow(oldForest4$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest4$err.rate)),
+  Error=c(oldForest4$err.rate[,"OOB"],
+    oldForest4$err.rate[,"1"],
+    oldForest4$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood4 <- data.frame(
+  Trees=rep(1:nrow(mirkwood4$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood4$err.rate)),
+  Error=c(mirkwood4$err.rate[,"OOB"],
+    mirkwood4$err.rate[,"1"],
+    mirkwood4$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn4<- data.frame(
+  Trees=rep(1:nrow(fangorn4$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn4$err.rate)),
+  Error=c(fangorn4$err.rate[,"OOB"],
+    fangorn4$err.rate[,"1"],
+    fangorn4$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest4, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood4, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn4, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+
+```{r split optimization for drug 4}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree405, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree410, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree420, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+```{r final paramaters drug 4}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest4 <- randomForest( drug∼.,data=tree405  ,mtry=2,ntree=1000)
+oldForest4
+
+mirkwood4 <- randomForest( drug∼.,data=tree410  ,mtry=1,ntree=1000)
+mirkwood4
+
+fangorn4 <- randomForest( drug∼.,data=tree420  ,mtry=2,ntree=500)
+fangorn4
+```
+
+#drug 5
+```{r drug 5 roots}
+#straping the first column of the truth set to the tree
+tree520<-cbind(drug=truth_set[,5],root20)
+tree520<-clean_names(tree520)
+tree520$drug<-factor(tree520$drug)
+
+
+tree510<-cbind(drug=truth_set[,5],root10)
+tree510<-clean_names(tree510)
+tree510$drug<-factor(tree510$drug)
+
+
+tree505<-cbind(drug=truth_set[,5],root5)
+tree505<-clean_names(tree505)
+tree505$drug<-factor(tree505$drug)
+
+```
+
+```{r primary run forrest drug 5}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest5 <- randomForest( drug∼.,data=tree505  ,mtry=3,ntree=500)
+oldForest5
+
+mirkwood5 <- randomForest( drug∼.,data=tree510  ,mtry=3,ntree=1000)
+mirkwood5
+
+fangorn5 <- randomForest( drug∼.,data=tree520  ,mtry=3,ntree=500)
+fangorn5
+
+```
+
+```{r tree optimization drug 5}
+#tree optimization for 5% tree
+oob.error.oldForest5 <- data.frame(
+  Trees=rep(1:nrow(oldForest5$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest5$err.rate)),
+  Error=c(oldForest5$err.rate[,"OOB"],
+    oldForest5$err.rate[,"1"],
+    oldForest5$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood5 <- data.frame(
+  Trees=rep(1:nrow(mirkwood5$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood5$err.rate)),
+  Error=c(mirkwood5$err.rate[,"OOB"],
+    mirkwood5$err.rate[,"1"],
+    mirkwood5$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn5<- data.frame(
+  Trees=rep(1:nrow(fangorn5$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn5$err.rate)),
+  Error=c(fangorn5$err.rate[,"OOB"],
+    fangorn5$err.rate[,"1"],
+    fangorn5$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest5, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood5, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn5, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+
+```{r split optimization for drug 5}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree505, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree510, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree520, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+```{r final paramaters drug 5}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest5 <- randomForest( drug∼.,data=tree505  ,mtry=8,ntree=500)
+oldForest5
+
+mirkwood5 <- randomForest( drug∼.,data=tree510  ,mtry=3,ntree=1000)
+mirkwood5
+
+fangorn5 <- randomForest( drug∼.,data=tree520  ,mtry=19,ntree=500)
+fangorn5
+```
+
+#drug 6
+```{r drug 6 roots}
+#straping the first column of the truth set to the tree
+tree620<-cbind(drug=truth_set[,6],root20)
+tree620<-clean_names(tree620)
+tree620$drug<-factor(tree620$drug)
+
+
+tree610<-cbind(drug=truth_set[,6],root10)
+tree610<-clean_names(tree610)
+tree610$drug<-factor(tree610$drug)
+
+
+tree605<-cbind(drug=truth_set[,6],root5)
+tree605<-clean_names(tree605)
+tree605$drug<-factor(tree605$drug)
+
+```
+
+```{r primary run forrest drug 6}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest6 <- randomForest( drug∼.,data=tree605  ,mtry=3,ntree=500)
+oldForest6
+
+mirkwood6 <- randomForest( drug∼.,data=tree610  ,mtry=3,ntree=500)
+mirkwood5
+
+fangorn6 <- randomForest( drug∼.,data=tree620  ,mtry=3,ntree=500)
+fangorn6
+```
+
+```{r tree optimization drug 6}
+#tree optimization for 5% tree
+oob.error.oldForest6 <- data.frame(
+  Trees=rep(1:nrow(oldForest5$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest6$err.rate)),
+  Error=c(oldForest6$err.rate[,"OOB"],
+    oldForest6$err.rate[,"1"],
+    oldForest6$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood6 <- data.frame(
+  Trees=rep(1:nrow(mirkwood6$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood6$err.rate)),
+  Error=c(mirkwood6$err.rate[,"OOB"],
+    mirkwood6$err.rate[,"1"],
+    mirkwood6$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn6<- data.frame(
+  Trees=rep(1:nrow(fangorn6$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn6$err.rate)),
+  Error=c(fangorn6$err.rate[,"OOB"],
+    fangorn6$err.rate[,"1"],
+    fangorn6$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest6, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood6, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn6, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+```{r split optimization for drug 6}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree605, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree610, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree620, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+
+```{r final paramaters drug 6}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest5 <- randomForest( drug∼.,data=tree605  ,mtry=8,ntree=500)
+oldForest5
+
+mirkwood5 <- randomForest( drug∼.,data=tree610  ,mtry=7,ntree=500)
+mirkwood5
+
+fangorn5 <- randomForest( drug∼.,data=tree620  ,mtry=20,ntree=500)
+fangorn5
+```
+
+#drug 7
+```{r drug 7 roots}
+#straping the first column of the truth set to the tree
+tree720<-cbind(drug=truth_set[,7],root20)
+tree720<-clean_names(tree720)
+tree720$drug<-factor(tree720$drug)
+
+
+tree710<-cbind(drug=truth_set[,7],root10)
+tree710<-clean_names(tree710)
+tree710$drug<-factor(tree710$drug)
+
+
+tree705<-cbind(drug=truth_set[,7],root5)
+tree705<-clean_names(tree705)
+tree705$drug<-factor(tree705$drug)
+
+```
+
+```{r primary run forrest drug 7}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest7 <- randomForest( drug∼.,data=tree705  ,mtry=3,ntree=1500)
+oldForest7
+
+mirkwood7<- randomForest( drug∼.,data=tree710  ,mtry=3,ntree=1000)
+mirkwood7
+
+fangorn7 <- randomForest( drug∼.,data=tree720  ,mtry=3,ntree=2000)
+fangorn7
+
+```
+
+```{r tree optimization drug 7}
+#tree optimization for 5% tree
+oob.error.oldForest7 <- data.frame(
+  Trees=rep(1:nrow(oldForest7$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest7$err.rate)),
+  Error=c(oldForest7$err.rate[,"OOB"],
+    oldForest7$err.rate[,"1"],
+    oldForest7$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood7 <- data.frame(
+  Trees=rep(1:nrow(mirkwood7$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood7$err.rate)),
+  Error=c(mirkwood7$err.rate[,"OOB"],
+    mirkwood7$err.rate[,"1"],
+    mirkwood7$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn7<- data.frame(
+  Trees=rep(1:nrow(fangorn7$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn7$err.rate)),
+  Error=c(fangorn7$err.rate[,"OOB"],
+    fangorn7$err.rate[,"1"],
+    fangorn7$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest7, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood7, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn7, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+
+```{r split optimization for drug 7}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree705, mtry=i, ntree=1500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree710, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree720, mtry=i, ntree=2000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+
+```{r final paramaters drug 7}
+set.seed(25000)
+#BAROOM dont be hasty now
+#assuming 0.44 is the lowest
+oldForest5 <- randomForest( drug∼.,data=tree705  ,mtry=10,ntree=1500)
+oldForest5
+
+#assuming 0.40 is the lowest
+mirkwood5 <- randomForest( drug∼.,data=tree710  ,mtry=15,ntree=1000)
+mirkwood5
+
+#assuming 0.40 is the lowest
+fangorn5 <- randomForest( drug∼.,data=tree720  ,mtry=14,ntree=2000)
+fangorn5
+```
+
+#drug 8
+```{r drug 8 roots}
+#straping the first column of the truth set to the tree
+tree820<-cbind(drug=truth_set[,8],root20)
+tree820<-clean_names(tree820)
+tree820$drug<-factor(tree820$drug)
+
+
+tree810<-cbind(drug=truth_set[,8],root10)
+tree810<-clean_names(tree810)
+tree810$drug<-factor(tree810$drug)
+
+
+tree805<-cbind(drug=truth_set[,8],root5)
+tree805<-clean_names(tree805)
+tree805$drug<-factor(tree805$drug)
+
+```
+
+```{r primary run forrest drug 8}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest8 <- randomForest( drug∼.,data=tree805  ,mtry=3,ntree=500)
+oldForest8
+
+mirkwood8<- randomForest( drug∼.,data=tree810  ,mtry=3,ntree=1000)
+mirkwood8
+
+fangorn8 <- randomForest( drug∼.,data=tree820  ,mtry=3,ntree=1500)
+fangorn8
+
+```
+
+```{r tree optimization drug 8}
+#tree optimization for 5% tree
+oob.error.oldForest8 <- data.frame(
+  Trees=rep(1:nrow(oldForest8$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest8$err.rate)),
+  Error=c(oldForest8$err.rate[,"OOB"],
+    oldForest8$err.rate[,"1"],
+    oldForest8$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood8 <- data.frame(
+  Trees=rep(1:nrow(mirkwood8$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood8$err.rate)),
+  Error=c(mirkwood8$err.rate[,"OOB"],
+    mirkwood8$err.rate[,"1"],
+    mirkwood8$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn8<- data.frame(
+  Trees=rep(1:nrow(fangorn8$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn8$err.rate)),
+  Error=c(fangorn8$err.rate[,"OOB"],
+    fangorn8$err.rate[,"1"],
+    fangorn8$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest8, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood8, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn8, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+
+```{r split optimization for drug 8}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree805, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree810, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree820, mtry=i, ntree=1500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+
+```{r final paramaters drug 8}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+#assuming that 0.20 is the lowest
+oldForest8 <- randomForest( drug∼.,data=tree805  ,mtry=5,ntree=500)
+oldForest8
+
+#assuming that 0.20 is the lowest
+mirkwood8 <- randomForest( drug∼.,data=tree810  ,mtry=4,ntree=1000)
+mirkwood8
+
+#assuming that 0.20 is the lowest 
+fangorn8 <- randomForest( drug∼.,data=tree820  ,mtry=4,ntree=1500)
+fangorn8
+```
+
+#drug 9
+```{r drug 9 roots}
+#straping the first column of the truth set to the tree
+tree920<-cbind(drug=truth_set[,9],root20)
+tree920<-clean_names(tree920)
+tree920$drug<-factor(tree920$drug)
+
+
+tree910<-cbind(drug=truth_set[,9],root10)
+tree910<-clean_names(tree910)
+tree910$drug<-factor(tree910$drug)
+
+
+tree905<-cbind(drug=truth_set[,9],root5)
+tree905<-clean_names(tree905)
+tree905$drug<-factor(tree905$drug)
+
+```
+
+```{r primary run forrest drug 9}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest9 <- randomForest( drug∼.,data=tree905  ,mtry=3,ntree=500)
+oldForest9
+
+mirkwood9<- randomForest( drug∼.,data=tree910  ,mtry=3,ntree=1000)
+mirkwood9
+
+fangorn9 <- randomForest( drug∼.,data=tree920  ,mtry=3,ntree=1500)
+fangorn9
+
+```
+
+```{r tree optimization drug 9}
+#tree optimization for 5% tree
+oob.error.oldForest9 <- data.frame(
+  Trees=rep(1:nrow(oldForest9$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest9$err.rate)),
+  Error=c(oldForest9$err.rate[,"OOB"],
+    oldForest9$err.rate[,"1"],
+    oldForest9$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood9 <- data.frame(
+  Trees=rep(1:nrow(mirkwood9$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood9$err.rate)),
+  Error=c(mirkwood9$err.rate[,"OOB"],
+    mirkwood9$err.rate[,"1"],
+    mirkwood9$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn9<- data.frame(
+  Trees=rep(1:nrow(fangorn9$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn9$err.rate)),
+  Error=c(fangorn9$err.rate[,"OOB"],
+    fangorn9$err.rate[,"1"],
+    fangorn9$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest9, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood9, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn9, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+
+```{r split optimization for drug 9}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree905, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree910, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree920, mtry=i, ntree=1500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+
+```{r final paramaters drug 9}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+#assuming that 0.32 is the lowest
+oldForest9 <- randomForest( drug∼.,data=tree905  ,mtry=10,ntree=500)
+oldForest9
+
+#assuming that 0.32 is the lowest
+mirkwood9 <- randomForest( drug∼.,data=tree910  ,mtry=9,ntree=1000)
+mirkwood9
+
+#assuming that 0.28 is the lowest
+fangorn9 <- randomForest( drug∼.,data=tree920  ,mtry=4,ntree=1500)
+fangorn9
+```
+#drug 10
+```{r drug 10 roots}
+#straping the first column of the truth set to the tree
+tree1020<-cbind(drug=truth_set[,10],root20)
+tree1020<-clean_names(tree1020)
+tree1020$drug<-factor(tree1020$drug)
+
+
+tree1010<-cbind(drug=truth_set[,10],root10)
+tree1010<-clean_names(tree1010)
+tree1010$drug<-factor(tree1010$drug)
+
+
+tree1005<-cbind(drug=truth_set[,10],root5)
+tree1005<-clean_names(tree1005)
+tree1005$drug<-factor(tree1005$drug)
+
+```
+
+```{r primary run forrest drug 10}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest10 <- randomForest( drug∼.,data=tree1005  ,mtry=3,ntree=500)
+oldForest10
+
+mirkwood10<- randomForest( drug∼.,data=tree1010  ,mtry=3,ntree=500)
+mirkwood10
+
+fangorn10 <- randomForest( drug∼.,data=tree1020  ,mtry=3,ntree=500)
+fangorn10
+
+```
+
+```{r tree optimization drug 10}
+#tree optimization for 5% tree
+oob.error.oldForest10 <- data.frame(
+  Trees=rep(1:nrow(oldForest10$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest10$err.rate)),
+  Error=c(oldForest10$err.rate[,"OOB"],
+    oldForest10$err.rate[,"1"],
+    oldForest10$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood10 <- data.frame(
+  Trees=rep(1:nrow(mirkwood10$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood10$err.rate)),
+  Error=c(mirkwood10$err.rate[,"OOB"],
+    mirkwood10$err.rate[,"1"],
+    mirkwood10$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn10<- data.frame(
+  Trees=rep(1:nrow(fangorn10$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn10$err.rate)),
+  Error=c(fangorn10$err.rate[,"OOB"],
+    fangorn10$err.rate[,"1"],
+    fangorn10$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest10, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood10, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn10, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+
+```{r split optimization for drug 10}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1005, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1010, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1020, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+
+```{r final paramaters drug 10}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+#assuming that 0.20 is the lowest
+oldForest10 <- randomForest( drug∼.,data=tree1005  ,mtry=4,ntree=500)
+oldForest10
+
+#assuming that 0.20 is the lowest
+mirkwood10 <- randomForest( drug∼.,data=tree1010  ,mtry=11,ntree=500)
+mirkwood10
+
+#assuming that 0.28 is the lowest
+fangorn10 <- randomForest( drug∼.,data=tree1020  ,mtry=8,ntree=500)
+fangorn10
+```
+
+
+#drug 11
+```{r drug 11 roots}
+#straping the first column of the truth set to the tree
+tree1120<-cbind(drug=truth_set[,11],root20)
+tree1120<-clean_names(tree1120)
+tree1120$drug<-factor(tree1120$drug)
+
+
+tree1110<-cbind(drug=truth_set[,11],root10)
+tree1110<-clean_names(tree1110)
+tree1110$drug<-factor(tree1110$drug)
+
+
+tree1105<-cbind(drug=truth_set[,11],root5)
+tree1105<-clean_names(tree1105)
+tree1105$drug<-factor(tree1105$drug)
+
+```
+
+```{r primary run forrest drug 11}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest11 <- randomForest( drug∼.,data=tree1105  ,mtry=3,ntree=500)
+oldForest11
+
+mirkwood11<- randomForest( drug∼.,data=tree1110  ,mtry=3,ntree=1000)
+mirkwood11
+
+fangorn11 <- randomForest( drug∼.,data=tree1120  ,mtry=3,ntree=500)
+fangorn11
+
+```
+
+```{r tree optimization drug 11}
+#tree optimization for 5% tree
+oob.error.oldForest11 <- data.frame(
+  Trees=rep(1:nrow(oldForest11$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest11$err.rate)),
+  Error=c(oldForest11$err.rate[,"OOB"],
+    oldForest11$err.rate[,"1"],
+    oldForest11$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood11 <- data.frame(
+  Trees=rep(1:nrow(mirkwood11$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood11$err.rate)),
+  Error=c(mirkwood11$err.rate[,"OOB"],
+    mirkwood11$err.rate[,"1"],
+    mirkwood11$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn11<- data.frame(
+  Trees=rep(1:nrow(fangorn11$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn11$err.rate)),
+  Error=c(fangorn11$err.rate[,"OOB"],
+    fangorn11$err.rate[,"1"],
+    fangorn11$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest11, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood11, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn11, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+
+```{r split optimization for drug 11}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1105, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1110, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1120, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+
+```{r final paramaters drug 11}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+#assuming that 0.44 is the lowest
+oldForest11 <- randomForest( drug∼.,data=tree1105  ,mtry=2,ntree=500)
+oldForest11
+
+#assuming that 0.44 is the lowest
+mirkwood11 <- randomForest( drug∼.,data=tree1110  ,mtry=3,ntree=1000)
+mirkwood11
+
+#assuming that 0.40 is the lowest
+fangorn11 <- randomForest( drug∼.,data=tree1120  ,mtry=6,ntree=500)
+fangorn11
+```
+#drug 12
+```{r drug 12 roots}
+#straping the first column of the truth set to the tree
+tree1220<-cbind(drug=truth_set[,12],root20)
+tree1220<-clean_names(tree1220)
+tree1220$drug<-factor(tree1220$drug)
+
+
+tree1210<-cbind(drug=truth_set[,12],root10)
+tree1210<-clean_names(tree1210)
+tree1210$drug<-factor(tree1210$drug)
+
+
+tree1205<-cbind(drug=truth_set[,12],root5)
+tree1205<-clean_names(tree1205)
+tree1205$drug<-factor(tree1205$drug)
+
+```
+
+```{r primary run forrest drug 12}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+oldForest12 <- randomForest( drug∼.,data=tree1205  ,mtry=3,ntree=750)
+oldForest12
+
+mirkwood12<- randomForest( drug∼.,data=tree1210  ,mtry=3,ntree=750)
+mirkwood12
+
+fangorn12 <- randomForest( drug∼.,data=tree1220  ,mtry=3,ntree=750)
+fangorn12
+
+```
+
+```{r tree optimization drug 12}
+#tree optimization for 5% tree
+oob.error.oldForest12 <- data.frame(
+  Trees=rep(1:nrow(oldForest12$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(oldForest12$err.rate)),
+  Error=c(oldForest12$err.rate[,"OOB"],
+    oldForest12$err.rate[,"1"],
+    oldForest12$err.rate[,"0"]))
+
+#tree optimization for 10% tree
+oob.error.mirkwood12 <- data.frame(
+  Trees=rep(1:nrow(mirkwood12$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(mirkwood12$err.rate)),
+  Error=c(mirkwood12$err.rate[,"OOB"],
+    mirkwood12$err.rate[,"1"],
+    mirkwood12$err.rate[,"0"]))
+
+#tree optimization for 20% tree
+oob.error.fangorn12<- data.frame(
+  Trees=rep(1:nrow(fangorn12$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(fangorn12$err.rate)),
+  Error=c(fangorn12$err.rate[,"OOB"],
+    fangorn12$err.rate[,"1"],
+    fangorn12$err.rate[,"0"]))
+
+#tree optimization plot for 5% tree
+ggplot(data=oob.error.oldForest12, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 5% variance")
+
+#tree optimization plot for 10% tree
+ggplot(data=oob.error.mirkwood12, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 10% variance")
+
+#tree optimization for 20% tree
+ggplot(data=oob.error.fangorn12, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 20% variance")
+```
+
+```{r split optimization for drug 12}
+set.seed(25000)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1205, mtry=i, ntree=750)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1210, mtry=i, ntree=750)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1220, mtry=i, ntree=750)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+```
+
+```{r final paramaters drug 12}
+set.seed(25000)
+#BAROOM dont be hasty now
+
+#assuming that 0.44 is the lowest
+oldForest12 <- randomForest( drug∼.,data=tree1205  ,mtry=2,ntree=750)
+oldForest12
+
+#assuming that 0.40 is the lowest
+mirkwood12 <- randomForest( drug∼.,data=tree1210  ,mtry=17,ntree=750)
+mirkwood12
+
+#assuming that 0.40 is the lowest
+fangorn12 <- randomForest( drug∼.,data=tree1220  ,mtry=16,ntree=750)
+fangorn12
+```
