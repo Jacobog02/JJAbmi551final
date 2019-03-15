@@ -1,3 +1,0 @@
-"0","#straping the first column of the truth set to the tree"
-"0","tree1<-cbind(drug=truth_set[,1],featureSet)"
-"0","tree1"

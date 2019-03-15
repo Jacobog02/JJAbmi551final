@@ -1,0 +1,19 @@
+"0","```r
+#Now merging into one matrix
+organized_matrix <- data.frame(learning_rate = ls)
+# Now append the matrixes in order as they appear with node amount. 
+# Train and Test accuracy ae side by side. 
+n <- length(train.acc.mat)
+for (i in seq(n)){
+  buffer <- data.frame(train.acc.mat[i],test.acc.mat[i])
+  nodes <- as.character(nss[i])
+  #print(nodes)
+  updated_names <- c(paste('train_nodes_',nodes,sep=''),paste('test_nodes_',nodes,sep = ''))
+  
+  colnames(buffer) <- updated_names
+  
+  organized_matrix <-  cbind(organized_matrix, buffer) 
+}
+#Now clean names
+organized_matrix
+```"

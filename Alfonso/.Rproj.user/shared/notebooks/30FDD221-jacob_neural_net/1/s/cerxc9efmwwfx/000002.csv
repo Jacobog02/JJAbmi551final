@@ -1,0 +1,39 @@
+"0","```r
+names <- names(organized_matrix)
+lr <- names[1] #SHOU<D BE 1 BUT I AM DEBUGGING!!!!!!!!!
+# Modifying matrix to have the darn colors
+train_ <- rep('train',length(organized_matrix[,2]))
+test_<-  rep('test',length(organized_matrix[,3]))
+colors  <- data.frame(train_,test_)
+plot_organized_matrix <- cbind(colors,organized_matrix)
+names <- names(plot_organized_matrix)
+len_n <- length(names)
+ggpls <- list()
+for (i in seq(4,len_n,2)){
+  train_n <- names[i]
+  test_n <- names[i+1]
+  
+  nod <-  strsplit(train_n, split='_')[[1]][3]
+  
+  gorb <- ggplot(plot_organized_matrix) + 
+    geom_point(aes_string(x=lr, y=train_n, color = 'train_')) +
+    geom_line(aes_string(x=lr, y=train_n,color = 'train_')) +
+    geom_point(aes_string(x=lr, y=test_n, color = 'test_')) +
+    geom_line(aes_string(x=lr, y=test_n, color = 'test_')) +
+    xlim(0.01,1.01) + ylim(1.01,.50) +
+    scale_color_manual('',
+                       breaks= c('train','test'),
+                       values = c('darkred','blue')) +
+    #guides(color=FALSE) + # This hides the legends but i found a function that does it
+    theme_classic() +
+    xlab('learning rate') + ylab('percent accuracy') + 
+    labs(title=paste('Nodes:',nod)) 
+    
+  
+  ggpls <- c(ggpls,list(gorb))
+} 
+  
+  
+# Make list of grobs as output from the loop
+grid_arrange_shared_legend(ggpls, ncol=3,nrow=3, position = 'right')
+```"

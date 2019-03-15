@@ -1,0 +1,34 @@
+"0","```r
+apply(khan$train, 2, function(x) sum(is.na(x)))
+```"
+"1"," EWS.T1  EWS.T2  EWS.T3  EWS.T4  EWS.T6  EWS.T7  EWS.T9 EWS.T11 EWS.T12 EWS.T13 EWS.T14 EWS.T15 EWS.T19  EWS.C8 
+      0       0       0       0       0       0       0       0       0       0       0       0       0       0 
+ EWS.C3  EWS.C2  EWS.C4  EWS.C6  EWS.C9  EWS.C7  EWS.C1 EWS.C11 EWS.C10   BL.C5   BL.C6   BL.C7   BL.C8   BL.C1 
+      0       0       0       0       0       0       0       0       0       0       0       0       0       0 
+  BL.C2   BL.C3   BL.C4   NB.C1   NB.C2   NB.C3   NB.C6  NB.C12   NB.C7   NB.C4   NB.C5  NB.C10  NB.C11   NB.C9 
+      0       0       0       0       0       0       0       0       0       0       0       0       0       0 
+  NB.C8  RMS.C4  RMS.C3  RMS.C9  RMS.C2  RMS.C5  RMS.C6  RMS.C7  RMS.C8 RMS.C10 RMS.C11  RMS.T1  RMS.T4  RMS.T2 
+      0       0       0       0       0       0       0       0       0       0       0       0       0       0 
+ RMS.T6  RMS.T7  RMS.T8  RMS.T5  RMS.T9  RMS.T3 RMS.T10 RMS.T11 
+      0       0       0       0       0       0       0       0 
+"
+"0","```r
+apply(khan$test, 2, function(x) sum(is.na(x)))
+```"
+"1"," TEST.9 TEST.11  TEST.5  TEST.8 TEST.10 TEST.13  TEST.3  TEST.1  TEST.2  TEST.4  TEST.7 TEST.12 TEST.24  TEST.6 
+      0       0       0       0       0       0       0       0       0       0       0       0       0       0 
+TEST.21 TEST.20 TEST.17 TEST.18 TEST.22 TEST.16 TEST.23 TEST.14 TEST.25 TEST.15 TEST.19 
+      0       0       0       0       0       0       0       0       0       0       0 
+"
+"0","```r
+summary(khan$train.classes)
+```"
+"1","   EWS BL-NHL     NB    RMS 
+    23      8     12     21 
+"
+"0","```r
+summary(khan$test.classes)
+```"
+"1","   EWS BL-NHL     NB    RMS Normal 
+     6      3      6      5      5 
+"
