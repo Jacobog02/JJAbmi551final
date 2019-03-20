@@ -1,0 +1,21 @@
+"0","#Read in the cleaned expression data"
+"0","expression <- as.data.frame((read.table(""../data/clean_expression.txt"", row.names=1 )))"
+"0","rownames(expression)[1] <- '184A1'# Rename the only integer name"
+"0","# Read in the subtype data"
+"0","subtypes <- read_tsv(""../data/clean_subtypes.txt"")"
+"2","Parsed with column specification:
+cols(
+  cellline = [31mcol_character()[39m,
+  subtype = [31mcol_character()[39m
+)
+"
+"0","# Read in the truth set"
+"0","truth_set <-  as.data.frame((read.table(""../data/clean_training_answers.txt"", row.names=1 )))"
+"0","# Create merged feature set"
+"0","featureSet<-cbind(subtypes[,2],t(expression))"
+"0","#read in the submission table"
+"0","submission<-as.data.frame((read.csv(""../data/scoring_and_test_set_id_mappings.csv"")))"
+"0","submission[ , 'train_accuracy'] <- NA"
+"0","#read in the test sethead"
+"0","test<-as.data.frame(t(read.table(""../data/clean_test_expression.txt"", row.names=1 )))"
+"0","test<-clean_names(test)"

@@ -1,0 +1,349 @@
+---
+title: 'Jacob/Justine Data Cleaning'
+date: 3/11/19
+output:
+html_document:
+df_print: paged
+---
+
+
+# Libraries
+
+```{r libs, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(skimr)
+```
+
+<br><br>
+
+# Function Defintions
+
+```{r functs}
+bool_idx <- function ( to_idx, match){
+  # Function takes two vectors and returns boolean index for first vector so you can only keep whats in both. 
+  # I made this because I couldnt index rows with the columns names it was hard. 
+  
+  index <-  c()
+  
+  # I couldn't figure out how to index columns v rows so this is what I got.
+  for (i in to_idx) {
+    
+    if (i %in% match){
+      index <- c(index,TRUE)
+    }
+    else {
+      index <- c(index,FALSE)
+    }
+  }
+  
+  return(index)
+}
+```
+
+<br><br>
+
+# Reading in Data
+
+We stored the original and clean versions of the data in the data folder of the project directory. 
+
+```{r read_in_data, message=FALSE}
+expression <- as.data.frame((read.table("../data/expression.txt", row.names=1 )))
+
+# Needed as the first two column names start with a number so they get mucked up.
+names(expression)[1] <- '184A1'
+names(expression)[2] <- '600MPE'
+
+subtypes <- read_delim("../data/subtypes.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
+
+truth_set <-  as.data.frame((read.table("../data/training_set_answers.txt", row.names=1 )))
+```
+
+<br><br>
+
+# Preliminary EDA
+
+Our initial EDA will look at the original contents of the given text files.   
+
+<br>
+
+### Gene Expression Features
+
+We are first going to take a look at the 'expression.txt' file. This contains the gene expression data for all the data collected - the mixture of the training and testing sets.  
+
+Now I am interested in how many different features present in our dataset. 
+
+```{r gene_exp}
+dim(expression)
+expression %>% head() %>% glimpse()
+```
+
+There are 18632 distinct features (genes) and 39 observations in the dataset. 
+
+```{r gene_skim}
+expression %>% skim()
+```
+
+Looking at the raw expression data it is clear that it is raw data that has not been normalized yet. Normalization technqiues will be applied to the data dependent on which model we intend to use if the model requires that assumption of normalization.  
+
+There is also no missingness in the orginal gene expression data from skimming the data. The means of the differnt observations are about the same and they each have similar distributions based on the histogram.  
+
+Each observation is the the cell type which will allow us to extrapolate to each cell type response to the approprate drug treatment. Additonally each gene expression feature is annotated with the gene or region name that gives us meaninful information.   
+
+<br>
+
+### Cell Types
+
+We will look at the subtypes as well as all the truth set.
+
+```{r count_cell_types}
+subtypes %>% glimpse()
+subtypes %>% distinct(subtype)
+```
+
+This dataset linked the cell lines to their subtype distinction. Each observation is a unique instance of cell line name with its corresponding subtype classification.
+
+Based on the training data that was published there are only 4 subtypes present in this database.
+In the original study the paper, they discussed 6 subtypes being present in the dataset. This indicates that there are other subtypes that were randomly placed into the testing data. This lack of information puts us at a disadvantage as we do not have data for these distinct types. 
+
+> Thus, our model must be generalizable to predict drug response with cell subtypes that it has not been trained on. 
+
+<br>
+
+# DISCUSSION ON THE BIOLOGY OF THESE CELL TYPES AND IF IT IS LIKELY OUR MODEL WILL CAPTURE IT.
+
+
+```{r view_truth}
+head(truth_set,5)
+dim(truth_set) 
+names(truth_set) # Show all the drugs were in study
+```
+
+We can observe that we are predict drug responsivenes to 25 cell lines to 12 different drugs. Names are present in the above output. 
+
+Since, there are only 25 cell lines present in our training truth set, we will only build our model to predect these 25 cell lines with known outcomes. This must be done as we do not have outcomes for these cell lines outside of this truth set. I will remove the cell lines not in the expression set. 
+
+<br>
+
+## Processing the Clean Data set
+
+Use the truth_set (cell lines with known outcomes only) to create a vector to decide if the expression set data is kept for training. The rest are the test dataset used to generate a prediction matrix.  
+
+```{r clean_exp}
+full <- names(expression) # ALL observations in the given expression dataset
+truth_name <- rownames(truth_set) # observations with known outcomes (based on the truth set)
+exp_idx <- bool_idx(full,truth_name) # create indices
+
+train_expr <- expression[,exp_idx] # Pyll out the new expression set with only observations that have a known outcome
+dim(train_expr) # Check the dimensions 
+
+# I will also seperate the subtypes this way. This way we are only looking at the cell lines with known outcomes
+sub_names <- subtypes %>% pull(cellline)
+sub_idx <- bool_idx(sub_names,truth_name)
+train_subs <- subtypes[sub_idx,]
+dim(train_subs)
+```
+
+
+Now I will subset the test data use the boolean indexes I generated in the last codeblock.
+
+```{r subset_test}
+test_expr <- expression[,!exp_idx]
+test_subs <- subtypes[!sub_idx,]
+
+dim(test_expr)
+dim(test_subs)
+```
+
+Originally only 24 samples were retained but upon futher investiagtion there was an X in front of all cellines with integers as the first character. 
+Only 184A1 is present in the truth set but does not have corresponding expression data.  
+
+> All 25 cell lines from the truth set were present in the training data. Subtypes were also seperated the same way. 
+
+
+Here is the raw data showing what happened. 
+
+```{r find_missing}
+full <- names(as.data.frame((read.table("../data/expression.txt", row.names=1 ))))
+truth <- rownames(truth_set)
+
+# I couldn't figure out how to index columns vs rows so this is what I got.
+for (t in truth) {
+  if (t %in% full){
+    # pass
+  }
+  else {
+    print(t)
+  }
+}
+```
+
+Now we will seperate the data into a tab seperated file for each of the 3 input datasets.  
+
+Note: the truth set does not need to be modified as it includes all of the cell lines with known outcomes on drug responsiveness. 
+
+
+## Sorting Cleaned Data
+
+Now that we have the clean subsectioned data we will want to make sure that the cell lines match across all tables. 
+
+```{r sort_all}
+# Sort train expression
+train_expr <- with(train_expr,  train_expr[ , order(names(train_expr))])
+
+# Sort train subtype
+train_subs <- with(train_subs,  train_subs[order(cellline) , ])
+
+# Sort truth
+truth_set <- with(truth_set,  truth_set[order(rownames(truth_set)) , ])
+
+
+##    Testing feature set
+# Sort test expression data
+test_expr <- with(test_expr,  test_expr[ , order(names(test_expr))])
+
+# Sort test subtypes
+test_subs <- with(test_subs,  test_subs[order(cellline) , ])
+
+
+
+# Check to make sure all cellines match
+names(train_expr)
+train_subs %>% pull(cellline)
+rownames(truth_set)
+
+names(test_expr)
+test_subs %>% pull(cellline)
+```
+
+
+
+```{r write_out_train}
+# Double check all the dataframs have correct observations via the dimensions
+dim(train_expr)
+dim(train_subs)
+dim(truth_set)
+
+# Write expression
+write.table(train_expr, file= '../data/clean_expression.txt', sep= '\t', na = 'NA')
+# Write subtypes
+write_tsv(train_subs, '../data/clean_subtypes.txt', na = "NA")
+# Write training set answers
+write.table(truth_set, '../data/clean_training_answers.txt', sep= '\t', na = "NA")
+
+```
+
+
+```{r write_out_test}
+# Double check all the dataframs have correct observations via the dimensions
+dim(test_expr)
+dim(test_subs)
+
+# Write expression
+write.table(test_expr, file= '../data/clean_test_expression.txt', sep= '\t', na = 'NA')
+# Write subtypes
+write_tsv(test_subs, '../data/clean_test_subtypes.txt', na = "NA")
+
+
+
+### Reading in the data:
+test_expr <- as.data.frame((read.table("../data/clean_test_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+
+# Read in the subtype data
+test_subs <- read_tsv("../data/clean_test_subtypes.txt")
+```
+
+
+We checked the dimensions of the edited files to make sure that we only captured the cell lines with known drug responses to build our classifier. There should be only 25 observations, which we see. This means that we subsectioned out data correctly so we wrote it out to new files to build our classifier
+
+<br><br>
+
+# New Import Commands 
+
+```{r clean_data_import, message=FALSE}
+
+# Read in the cleaned expression data
+# NOTE: data has features are ROWS when reading it from the flat file.
+expression <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+
+# Read in the subtype data
+subtypes <- read_tsv("../data/clean_subtypes.txt")
+
+# Read in the truth set
+truth_set <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+
+
+# Create merged feature set
+featureSet<-cbind(subtypes[,2],t(expression))
+
+dim(expression)
+dim(subtypes)
+dim(truth_set)
+dim(featureSet)
+```
+
+# Extended EDA on Cleaned Data
+
+
+### Subtype by Cell line
+
+```{r}
+featureSet %>% count(subtype)
+
+featureSet%>% filter(subtype=='Normal-like')
+```
+
+
+split luminal into three groups - 4,5,5
+because we have unbalanced data in the groups
+
+### Variance in the data
+
+```{r hist_qqnorm_by_observ}
+observ <- (colnames(expression))
+
+par(mfrow=c(2,2))
+for (i in 1:length(observ)){
+  hist(expression[,i], main = observ[i], xlab='')
+  qqnorm(expression[,i], main=observ[i])
+}
+```
+
+### Looking at the cell lines based on subtype
+
+<br>
+
+
+
+
+
+
+
+
+
+
+
+
+1.	Data Quality: (40 points)
+
+o	Checked for internal consistency between the provided metadata and the full data set.
+OK
+o	Reported any missing or duplicate data.
+o	Evidence of at least one outside source used to understand the data attributes, and how they may have been generated (extra credit: citation provided).
+o	Requested any additional study-specific attributes (i.e. how, where, when, by whom, and why the data were originally collected) from the original authors. 
+
+2.	Exploratory Data Analysis: (30 points)
+
+o	Assessed the distribution of the attributes using descriptive statistics (i.e. center, spread, shape) and at least one stand-alone visualization (e.g. boxplot, histogram, Q-Q plot). Included a corresponding written rationale for including the visualization and an interpretation. (Note: In a "stand-alone" visualization, the axes, data and/or model are all labeled.)
+o	Assessed the relationship (or correlation) between at least two attributes using a stand-alone visualization (e.g. scatterplot, trellis plot, conditional histogram). Included a corresponding written rationale for including the visualization and an interpretation.
+-5 The correlation matrix is great, though it is good practice to actually plot the observations to inspect them visually. (For example, if one or two data points are driving the correlation, you would want to know this.)  
+-5 No rationale or interpretation of any of the correlations uncovered in EDA. Why is it important to know which attributes are highly correlated?
+3.	Feasibility: (20 points)
+
+o	Described at least one potential issue with using these data for secondary analysis to build a classification model for predicting diagnosis class, including any assumptions.
+OK
+o	Provided at least one question for the original authors needed to better assess feasibility.
+OK, provided reasoning in the discussion of the distributions of the attributes addressing why a model using these attributes would be feasible.
+
+

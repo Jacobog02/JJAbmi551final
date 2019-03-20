@@ -1,3 +1,0 @@
-"0","#tree optimization plot for 10% tree"
-"0","ggplot(data=oob.error.mirkwood, aes(x=Trees, y=Error)) +"
-"0","  geom_line(aes(color=Type))+ggtitle(""forest of 10% variance"")"
