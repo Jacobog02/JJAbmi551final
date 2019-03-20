@@ -198,17 +198,41 @@ $(document).ready(function () {
 ## v tibble  2.0.1     v dplyr   0.7.8
 ## v tidyr   0.8.2     v stringr 1.4.0
 ## v readr   1.3.1     v forcats 0.3.0</code></pre>
-<pre><code>## Warning: package 'tibble' was built under R version 3.5.2</code></pre>
-<pre><code>## Warning: package 'readr' was built under R version 3.5.2</code></pre>
-<pre><code>## Warning: package 'purrr' was built under R version 3.5.2</code></pre>
-<pre><code>## Warning: package 'dplyr' was built under R version 3.5.2</code></pre>
-<pre><code>## Warning: package 'stringr' was built under R version 3.5.2</code></pre>
 <pre><code>## -- Conflicts ------------------------------------ tidyverse_conflicts() --
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>library(readr)
+library(caret) # for LDA modeling</code></pre>
+<pre><code>## Loading required package: lattice</code></pre>
+<pre><code>## 
+## Attaching package: 'caret'</code></pre>
+<pre><code>## The following object is masked from 'package:purrr':
+## 
+##     lift</code></pre>
+<pre class="r"><code>library(janitor)
+library(corrplot)</code></pre>
+<pre><code>## corrplot 0.84 loaded</code></pre>
+<pre class="r"><code>library(genefilter)</code></pre>
+<pre><code>## 
+## Attaching package: 'genefilter'</code></pre>
+<pre><code>## The following object is masked from 'package:readr':
+## 
+##     spec</code></pre>
+<pre class="r"><code>## FUNCTION FOR BINARIZING THE OUTCOME
+binarizeOutcomeFxn &lt;- function(data) 
+  {
+  outcomeBinary &lt;- ifelse(data[1] == '1', 1, 0)
+  data[1] &lt;- as.factor(outcomeBinary)
+  
+  return(data)
+  }</code></pre>
 <pre class="r"><code># Read in the cleaned expression data
+# NOTE: data has features are ROWS when reading it from the flat file.
+# Also clean the names of the genes in the expression data
 expression &lt;- as.data.frame((read.table(&quot;../data/clean_expression.txt&quot;, row.names=1 )))
 rownames(expression)[1] &lt;- '184A1'# Rename the only integer name
+expression &lt;- clean_names(expression)
+
 
 # Read in the subtype data
 subtypes &lt;- read_tsv(&quot;../data/clean_subtypes.txt&quot;)</code></pre>
@@ -219,11 +243,13 @@ subtypes &lt;- read_tsv(&quot;../data/clean_subtypes.txt&quot;)</code></pre>
 ## )</code></pre>
 <pre class="r"><code># Read in the truth set
 truth_set &lt;-  as.data.frame((read.table(&quot;../data/clean_training_answers.txt&quot;, row.names=1 )))
-
+# Clean row names of truth set
+truth_set &lt;- clean_names(truth_set)
 
 # Create merged feature set
 featureSet&lt;-cbind(subtypes[,2],t(expression))
 
+# Check dimensions of allthe data read in to see if it was correct
 dim(expression)</code></pre>
 <pre><code>## [1] 18632    25</code></pre>
 <pre class="r"><code>dim(subtypes)</code></pre>
@@ -232,6 +258,2166 @@ dim(expression)</code></pre>
 <pre><code>## [1] 25 12</code></pre>
 <pre class="r"><code>dim(featureSet)</code></pre>
 <pre><code>## [1]    25 18633</code></pre>
+<pre class="r"><code># Create a variance matrix of the expression data
+expVar &lt;- (rowVars(expression))
+hist(expVar)</code></pre>
+<p><img src="data:image/png;base64,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Afr5UECBfLQa0KKcp5UTR94DBXLSZkBnrv/D639c74Lu/XvhBRSIrOWALsyP26e/HboOFMhJi5GYfnj58LAMaFHU/X4lkoACobW/oPKsoquAHrw59/E1AgpE1l0kpv+6Zz4FFIgtdCQEFIgsdCQEFIgsdCQEFIgsdCQEFIgsdCQEFIgsdCQEFIgsdCQEFIisk1s5Rxt3dV54cgIKBCag3Q4KZKS9SJw9EFAga20uJrLv75DbIqBAZG1GovYL5VIIKBBZq5HY93cgbRJQILJ2I3F6uYN4AQUiazcSs4P4y+yCCigQWcuR+Hx09C/pXy2gQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGShIyGgQGStR2L68f3Jycmrj58SvlZAgcjajcSHZ6PSndf7frmAApG1GYmzB6O6g1/2G0BAgchajMTpYRHNW0cLN4sPxk/2GkFAgcjai8TX+7NgPq984t0sqNd+3WcIAQUiay8Sk61cFkm9t88QAgpE1lokpk9Ho80D9tPR6Id9zsYLKBBZa5GY7W5uHa83fe57BBSITEC7HRTISJuH8OPNq5YcwgM5aS8Sx1u1LN4WvbHPEAIKRNZeJD4fzgr6pvKJs1k/t3ZKv0tAgchajMRkfun80c8nhb8vrqTf6yomAQVCazMSbw83buUcP95vAAEFIms1EtOX1YSOH+27IpOAApG1HYnph5OXR0dHj05eJ6xnJ6BAZKEjIaBAZKEjIaBAZFak73ZQICNWpO92UCAjVqTvdlAgI9uRmL66oqGtSA/kbTsSX++Pbu99sN3AivRA5hoDmvSG5SYr0gOZa4jEu8Vbl+M7b7b/7uKsSA/krjES05c3lzdf/p48sAWVgdztisSqodf3voF9SUCB3H0nEl+WS4EcPE9pqBXpgdx9PxLLhu6/jtI3K9ID2ftuJN6tbyTabyX5OSvSA5nbHYl3D5cH8PP7MRMKakV6IG87IrHc91weu+997L1gRXoga02RWC0BUl4IOjsc3+8eogUr0gM523Un0uzQvf65lIB+syI9kLHmgG7uLM4+t9f1R1dEQIHImgLacA/nxy7mskVAgcisSN/toEBGrEjf7aBARnZEYvpvxR7j1//6z5d559OK9EDWGiNx9nBx0v3r/dH4L8lDW5EeyFtTJE5XS8fPr2ja7+ahkhXpgcw1RKK4iX18d37s/uVF0k2cc1akBzLXEInaMkrHSTdxfrMiPZC/ht/KWVvIc7Y7mnYJ/f4LKo8aXPDJBBToQeOdSJXKJd/EKaBA7loLqBXpgdw1HsJX3rzct3klK9IDmWuIxKRy5r04I594HZMV6YHMNURifvXnnecfP358X9yJmbwMkxXpgbw1ReJzbRnkxMtAv1mRHshc862c5Rogdy5zM7wV6YGc7VpM5P1PR0dHPyb9Rvj6QFakB3IVOhICCkQWOhICCkRmRfpuBwUy0hyJ+TugKz+mvxFqRXogY+dexrTvGp4VVqQHsrZjPdCrCKgV6YG8Nd/KObr988e139NGtiI9kLnmxUTS1lCusyI9kLnG5ewucfvmmhXpgdydtx5osv0XVN4moEBkjYfwAtraoEBGmk8i7XeyvJEV6YHcNa8HehW7oFakBzK340L68aOPlx3ZivRA5hpPIl3NhfRWpAfy1mJArUgP5K0hoA9v1d1OfkPUivRAztqOhBXpgWyFjoSAApGFjoSAApHtisSXk5NXn75NE1diuiICCkTWHIm3Nxdn37/eP3jT+IBuCCgQWWMkXqwuX7qilZlSCSgQWVMkiivgD/7pcBbQ4ubLve5ev1oCCkS241d6PJ7tfBYX0Det6tkdAQUia4jE8XzJj0VAiwWU0pan37qhKeG2JgEFImtcD7R433MZ0NnuaNoxvIACudu5Iv0yoOlr2239UmMBBfLSXkDn75/ut/rS1uQEFAistUP4b1dwBkpAgciaTyLdWwd0cpnfcXzZte0FFIisIRKny2voi/bN/nyZncjTyx3ECygQWUMkiiPv8fMioNO/jS53If0lf8OngAKRNUWidgXS5W7l/Hx09C/pXy2gQGSNkSj2QZcsJgKww45InD0r1mMa33nd7Ww2CCgQWehICCgQWehICCgQWehICCgQWcOdSD8d1f3Y24KgAgpE1ngv/CXW/7hSAgpEJqDdDgpkpCESXz6u/P3ZaPz4Y3+/mVNAgcjOicTnw9HjbibSRECByM6LxKTPX8spoEBk50VitguavpzdZQkoENl5kbjskp6XIqBAZBfYAxVQgCbnvwd6qQVBL0dAgci+G4npx2JFZe+BAjQ5/0J6Z+EBGp0b0LHrQAEaNQT04a3S7Uf93YckoEBsoSMhoEBkoSMhoEBkoSMhoEBkoSMhoEBkDSvSvz9p8qqHy+kFFIjsAgsq97essoACkQlot4MCGWk8hH95OBr96eeTk7/O/v+OQ3iARk2ROD0c3V3mcjIa3e1yOnUCCkTWEInaGsrHo9GTDqdTJ6BAZA2ROK6uHzKrqeXsAJo0nkSqnDCyIj3ADgLa7aBARhrOwj+tvu15akV6gGYNkZhULvo8uz8a3et0QlUCCkTWfBZ+NH5e/Gn69rDPHVABBUJrvA50ce/RrcUdSG86n9OagAKRNUbi3eH6Ds4feuyngAKh7YjEuz8XDb1+p898CigQW+hICCgQWehICCgQ2a5IfJmvvzTt83dyCigQW3Mk3t5crAD69f6Bk0gAzRoj8WK1hPLX+9WFRTonoEBkTZGYzOp58E+Hs4AWt3W6kB6g0Y47kR7Pdj6L+znrN8Z3TUCByBrXAy0WVF4EtLgr6cb2QzoioEBkjasxFe97LgNqQWWAHXauB7oMqPVAAXYQ0G4HBTLiEL7bQYGMNJ9EurcO6MRJJIBmDZE4XV5DXwS0WBrUZUwATRoiUVz7OX5eBHT6t5EL6QF2aIrE1/ujkls5AZo1RqLYB12ymAjADjsicfasWI9pfOd1t7PZIKBAZKEjIaBAZA2ReHHwvPt5NBJQILKdF9JHIKBAZDtv5YxAQIHIGvdABbS1QYGMNESi17s3awQUiKwpEm8PRwc/f+x8KtsEFIis4RD+p6M/j6osZwfQpPEk0khA2xoUyEhDQB/eqrstoAANQkdCQIHIQkdCQIHIQkdCQIHIQkdCQIHIqpEIdBPngoACke0I6JePv/cynToBBSJrDmiQfVEBBSIT0G4HBTIioN0OCmREQLsdFMiIgHY7KJARAe12UCAjAtrtoEBGBLTbQYGMCGi3gwIZEdBuBwUyshHQ8c8nhb8frv408+pTb5MTUCCwjYA28Ss9AJoIaLeDAhmpRmL6/qSJQ3iAJqEjIaBAZKEjIaBAZKEjIaBAZKEjIaBAZK1HYvqxODX16mPKmSgBBSJrNxIfnlUuh7rzet8vF1AgsjYjcfZg44rSg1/2G0BAgchajMTpYRHNW0cLN4sPxk/2GkFAgcjai0RxX9P4eeUT7w73vatJQIHI2ovEZCuXRVLv7TOEgAKRtRaJ6dPRaPOA/XQ0+mGfs/ECCkTWWiSalhTdd5lRAQUiE9BuBwUy0uYh/HjzqiWH8EBO2ovE8VYti7dFb+wzhIACkbUXic+Hs4K+qXzibNbPrZ3S7xJQILIWIzGZXzp/tPwtS4sr6fe6iklAgdDajMTbw41bOceP9xtAQIHIWo3E9GU1oeNH+67IJKBAZG1HYvrh5OXR0dGjk9cJ69kJKBBZ6EgIKBBZ6EgIKBCZFem7HRTIiBXpux0UyIgV6bsdFMiIFem7HRTIiBXpux0UyIgV6bsdFMiIFem7HRTIiAWVux0UyIiAdjsokBEr0nc7KJARK9J3OyiQESvSdzsokBEr0nc7KJARK9J3OyiQESvSdzsokBEr0nc7KJCRQJEYNbjwl7YynxYGBTISKBICCgyLFem7HRTIiBXpux0UyIgV6bsdFMiIFem7HRTIiBXpux0UyIgV6bsdFMiIFem7HRTIiAWVux0UyIiAdjsokBEr0nc7KJARK9J3OyiQESvSdzsokBEr0nc7KJARK9J3OyiQESvSdzsokBEr0nc7KJCR0JEQUCCy0JEQUCCybiIxfX/y6vf9v0xAgcjai8SXj6tkvlssrDy+6yQSkJP274WfvijPw++3nrKAAqG1H9Djopx/Ojp6WCTUivRAPloP6Oksm4tj9+JWTivSA/loPaDH5QIixWIiVqQHstF2QGsL01vODshJ2wGtraFsQWUgJwLa7aBARjp4D7RcA/TzoYAC+Wg1oEU5TysnjrwHCuSkzYDOXP+H1/+43gX1e+GBrLQc0IX5cfv0t0PXgQI5aTES0w8vHx6WAS2Kut+vRBJQILT2F1SeVXQV0IM35z6+RkCByLqLxPRf98yngAKxhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY6EgAKRhY5E3wFtRwtTBXoRenMWUCCy0Jtz3wFtYVBvDEBGQm/OAgpEFnpzFlAgstCbs4ACkYXenAUUiCz05iygQGShN2cBBSILvTkLKBBZ6M1ZQIHIQm/OAgpEFnpzFlAgstCbs4ACkYXenAUUiCz05iygQGShN2cBBSILvTkLKBBZ6M1ZQIHIQm/OAgpEFnpzFlAgstCbs4ACkYXenAUUiCz05iygQGShN+c8A+p3JUMuQm95AiqgEFnoLS/PgA5lUOA8obc8Ae1zUOA8obc8Ae1zUOA8obc8Ae1zUOA8rW9504/vT05OXn38lPC1AtrnoMB52t3yPjyrnCi+83rfLxfQPgcFztPmlnf2YONam4Nf9htAQC88qGujoActbiSnh8VGeOto4WbxwfjJXiMI6IUHFVDoQXsbydf7s2A+r3zi3Syo137dZwgBzW5QyEp7G8lkK5dFUu/tM4SA9juo/Vr4vtb+OU+fjkabB+yno9EP+5yNF9B+Bx2QFl4/nK+1f3mz3c2t4/Wmz1Wmkr5ddL25ApEkd+qyBBQYuuROXVabh/DjzauW9j2EB4isvXQfb9WyeFv0RmvPB9Cx9gL6+XBW0DeVT5zN+rm1UwowWC2+eTAp3psYH/18Uvj74kr6va5iAgitzXdf3x5uvNM7ftziswF0rNXTV9OX1YSOHzmBBOSk7fP/0w8nL4+Ojh6dvFZPIDNu4QBIJKAAiQQUIJGAAiQSUIBEAgqQSEABEgkoQCIBBUgkoACJBBQgkYACJBJQgEQCCpAol4B29dv/gHj6C09vz3yV+v7xAX3qLz29PfNV6v7zRiUAAApoSURBVPEbuK/hTHU4MzXVNgxnpn1OdTjfpO/xs27BcGZqqm0YzkwF9LL8rFswnJmaahuGM1MBvSw/6xYMZ6am2obhzFRAL8vPugXDmamptmE4MxXQy/KzbsFwZmqqbRjOTAX0svysWzCcmZpqG4YzUwG9LD/rFgxnpqbahuHMVEAvy8+6BcOZqam2YTgzFdDL8rNuwXBmaqptGM5MBfSy/KxbMJyZmmobhjNTAb0sP+sWDGemptqG4cxUQC/Lz7oFw5mpqbZhODMV0Mvys27BcGZqqm0YzkwF9LL8rFswnJmaahuGM1MBvSw/6xYMZ6am2obhzFRAL8vPugXDmamptmE4MxXQy/KzbsFwZmqqbRjOTAX0svysWzCcmZpqG4YzUwEFGCABBUgkoACJBBQgkYACJBJQgEQCCpBIQAESCShAIgEFSCSgAIkEFCCRgAIkElCARAIKkEhAARIJKEAiAQVIJKAAiQQUIJGAAiQSUIBEAgqQSEABEgkoQCIBBUgkoACJMgjo2bPD0Wh8503f8zjf9OWt0Wh0fQhTnft8OHrS9xzON31bfFdvPf7U90TO92EI/1S/3r/2a/lR6K2rNtV+tq7hB/Tt7AdcGP+l75mcZzXT0ehu31O5kK/3RwMI6OfVd/Xg1/Mf3Kvpi9XP/17fU/mO6dNRpUqht67aVHvaugYf0NPRWvCNvTLT0Y2+J3MRx/G/p5V+jkY/BN8HPS5//nELOp3NsqxS6K2rNtW+tq6hB7TYSzqY7bR/eFD9uUc0n+nrb4upjn/pezrnO4252dQV39Xx4+L47TBylgpF6ovjy7OngX/+s526yoYUeuuqTbW3rWvoAZ2sdjyKb2foDeh0/V/GYqrxd0GLf5LxAzpZb0On0XdBJ+uf+nHYf6rv5vvz61ZG3rrqU+1t6xp4QGffrdV/bmb/gQ+9AR2XNYo+1ULx/tJ/Dx/Qys+/8seYjtfzOw36H9Cz2d7b6M6DdZUCb12bU+1t6xp4QGe7SatvVvgNqFSZdViznY8nk/ABnW0sIVPUJH5AJ8XbIZUzM4G3rs2pVnS7dQ08oNV/isfhN/eVAQR0VqZ73+IH9DTckeVutUP4kN/Xyfjup+qp7cBb1+ZUKwR0D9UNKP7mvhJ1D6Q0+6c5+0cY/zs6n+H8UsXrj/uey3mKN5XnJ5GeRX239ksxq3pAo25dm1Ot6HbrGnhAqz/WweyNzLakUIdDDRaHm8E2mgbFPCdDuQ50/r5d+KlWqhR962oMaMdbl4B2rrh8LfgO6PJbOYiA/nl9+V+4C202FRcwFe6E3P9cGnhAu966BLRr9SuVQ1q9ixQ+oPNLAefHxV9exL89YbJO/Tjw+w3DDmjnW5eAdmwa+TLqpePlv8FhBHT5Qz+N/n0t+nn392Xr435fBx3Q7rcuAe3W2QBuQ1p/U8MHtDg3vD4fE+w88abKygJvIx+DDDmgPWxdAw9o4POEjYoVDyKfQSiU11bG/45W7+mJuIlXBL4mqGYYZ+HnNgPax9Y1/IAO4l/l0vwoLvIZhEL5Vl30hS/mcx1KQKsFmgSe6jCuA53bCGgvW9fAAxr4XokGL4LnaGFIAa1u4pGr9C3+8fDKMO5EmqsHtJ+ta+ABDXy37rZJ/Lc/C0MK6OyHvt6EIu4jVUTfnVupVCn61lULaE9b18ADGnq9mA2zLehazIW9d4n4vteG4qq/xYYd+szMt8VqdsvvZugLBqpVCr51Vafa19Y19ICu1gEMuWJhzQDuP9o0gIAWWSp+/l/ivz1yXL2MKe4lq9UqBd+66u829LN1DT2gsdfMrqofGQ+ipQMIaPXbGu8Ys2axwGr4ezlrx8Wxt676FVf9bF2DD+i33yL/1pbS9KmAtmL18499g2Sh/CcQOfX1MzOht65yqv1tXcMPaOzfG7hW3f8Q0Kv05eXN2ffz9uu+53EBHx7O/6mGnurGtUGRt65yqv1tXRkEFKAfAgqQSEABEgkoQCIBBUgkoACJBBQgkYACJBJQgEQCCpBIQAESCShAIgEFSCSgAIkEFCCRgAIkElCARAIKkEhAARIJKEAiAQVIJKAAiQQUIJGAAiQSUIBEAgqQSEABEgkoQCIBBUgkoACJBBQgkYACJBJQgEQCCpBIQAESCShAIgEFSCSgAIkEFCCRgAIkElCARAIKkEhAARIJKEAiAQVIJKAAiQQUIJGAAiQSUIBEAgqQSEABEgkoQCIBBUgkoACJBJThOx6NbtQ+8flw9MOnnibDH4mAMnyzXl77tfqJWVHv9TUZ/kgElOGbPq0H8+v90fiX3mbDH4iAkoHJqHbIfrp5SA/tEFAysLHLOTuCf9LfZPgDEVByUHvTc5bT+lui0BIBJabp21uj0ej28/mR+eyYfJHE4t3OG8VJoxvfzh6ORuO7vy8efVo9hj9d1/TLy2KQ8e3niw+PZw96d3M26psuXwkZE1BCmjVy4aCI3aKb31YlLQK6fMDyyH32gPUxfPnnyWhlUddZQN9WvgguS0CJaN3P5a7n7OOierOD8+LdzdlH/+np8q/LVt4rv3bRy7Kfy788Hl2fj+sME1dEQAmoCOXB8+I4/nCZu+P5XuTifxd5LXZN139dvRR0sjyFVAwyP8T/8GC5C3pc7Is6fOfqCCgBlW9prs6vz/c9T5c7nEVAF3+/3DP9VjnzPjuCX6S0vJhpVdfjkRuUuFICSkDH5duUqzNCs/8vjr/nfy6zWZ5+P63si24eoq9Oy7tBiSsmoMQzC956T3HVw+nT8mRQ5Vb3dTfX1y5NNi4C/fL+p8PROqCuD+UqCSjxFMfrFetqrvY7KzuZ5R+X4ZyFdh3f6buHq5NRy4A6/86VElDiqZyDLwNa7IIuzxPVA7rs5fKTp7XT8fVz+QLKFRNQ4mlcjW6yvhqpeQ90efKojORiP/b67R9//vf7AkorBJR4mu7FLE7Hr84dNb0Hutz3nD1s9fFkeRV+9SSSgHKlBJR4iqP1zbM9xRn0ybKWlYs+K+eF5qeeTtcfV25OOnUITzsElIBmpbz2Zv3H4rh9fmXo8kak+ZubW9fPL/p4vP64DOjZfQGlHQJKQEUpx49nR+lfXixOvS/3SZe7kvOzQ3feVG5Umpt9+r/cL6/0PF4cwk9fHq7u+BRQrpiAEtHpxm3syxWTl0vPz0p5vXZ90sL8UtEykdUxBJRWCCghnR5W+7m+9WhxM2dx6n2Zx4PqyabJqHav5otVPB8t31MVUK6YgBLTdL6U5/VH8wU/y1+7ebxeD/Tzg9lfP659TXFoXz359O7hfIhPq3P1AsoVE1CGp+F2d+iDgDI8AkoQAsrwCChBCCjDI6AEIaAMj4AShIAyPAJKEAIKkEhAARIJKEAiAQVIJKAAiQQUIJGAAiQSUIBEAgqQSEABEgkoQCIBBUgkoACJBBQgkYACJBJQgEQCCpBIQAESCShAIgEFSCSgAIkEFCCRgAIkElCARAIKkEhAARIJKEAiAQVIJKAAiQQUIJGAAiQSUIBEAgqQSEABEgkoQCIBBUgkoACJBBQgkYACJBJQgEQCCpBIQAESCShAov8Aq5ztmyZo70sAAAAASUVORK5CYII=" width="672" /></p>
+<pre class="r"><code>expVar &lt;- as.data.frame(expVar)
+names(expVar) &lt;- c('variance')
+
+# Look at the min and max variance in the expression data
+paste('max variance:', max(expVar[,1]))</code></pre>
+<pre><code>## [1] &quot;max variance: 11.2727797404595&quot;</code></pre>
+<pre class="r"><code>paste('min variance:', min(expVar[,1]))</code></pre>
+<pre><code>## [1] &quot;min variance: 0.0149762247525575&quot;</code></pre>
+<pre class="r"><code># Pull the quantiles of the variance matrix by increments of 5%
+quantile(expVar$variance, seq(0,1,by=0.01))</code></pre>
+<pre><code>##          0%          1%          2%          3%          4%          5% 
+##  0.01497622  0.03784845  0.04391115  0.04839101  0.05182771  0.05519327 
+##          6%          7%          8%          9%         10%         11% 
+##  0.05847315  0.06136749  0.06402354  0.06691160  0.06935878  0.07182192 
+##         12%         13%         14%         15%         16%         17% 
+##  0.07456373  0.07704506  0.07949853  0.08242497  0.08487329  0.08773491 
+##         18%         19%         20%         21%         22%         23% 
+##  0.09053802  0.09308688  0.09603581  0.09896968  0.10180304  0.10495050 
+##         24%         25%         26%         27%         28%         29% 
+##  0.10799579  0.11084336  0.11367516  0.11694274  0.11985908  0.12315537 
+##         30%         31%         32%         33%         34%         35% 
+##  0.12649416  0.13004267  0.13354329  0.13671450  0.14010066  0.14388823 
+##         36%         37%         38%         39%         40%         41% 
+##  0.14737656  0.15138624  0.15505517  0.15877336  0.16245148  0.16621642 
+##         42%         43%         44%         45%         46%         47% 
+##  0.17034870  0.17396821  0.17809066  0.18264068  0.18705408  0.19160720 
+##         48%         49%         50%         51%         52%         53% 
+##  0.19602401  0.20089228  0.20522711  0.21027939  0.21524982  0.22029635 
+##         54%         55%         56%         57%         58%         59% 
+##  0.22513720  0.23036287  0.23607701  0.24161460  0.24792677  0.25460356 
+##         60%         61%         62%         63%         64%         65% 
+##  0.26105411  0.26760568  0.27396731  0.28271867  0.29127956  0.29925863 
+##         66%         67%         68%         69%         70%         71% 
+##  0.30805566  0.31638666  0.32534815  0.33517712  0.34672525  0.35609257 
+##         72%         73%         74%         75%         76%         77% 
+##  0.36839654  0.38227480  0.39796769  0.41296444  0.42872877  0.44705525 
+##         78%         79%         80%         81%         82%         83% 
+##  0.46448526  0.48695602  0.50951959  0.53445409  0.56284058  0.59743584 
+##         84%         85%         86%         87%         88%         89% 
+##  0.63476526  0.66802592  0.71440437  0.76178877  0.82545669  0.90022174 
+##         90%         91%         92%         93%         94%         95% 
+##  0.98099145  1.07086723  1.17855909  1.29742660  1.45559266  1.63523217 
+##         96%         97%         98%         99%        100% 
+##  1.88503184  2.24348882  2.73748683  3.57993931 11.27277974</code></pre>
+<pre class="r"><code># Grab the genes with the top 10 percentile of greatest varaince
+top10&lt;- expVar$variance &gt; '0.98099145'
+# Save the expression data of the genes with top 10 percentile of greatest variance
+top10FeatureSet &lt;- featureSet[,top10]
+
+# Grab the genes with the top 5 percentile of greatest varaince
+top5&lt;- expVar$variance &gt; '1.63523217'
+# Save the expres'sion data of the genes with top 5 percentile of greatest variance
+top5FeatureSet &lt;- featureSet[,top5]
+
+# Grab the genes with the top 1 percentile of greatest varaince
+top1&lt;- expVar$variance &gt; '3.57993931'
+# Save the expres'sion data of the genes with top 1 percentile of greatest variance
+top1FeatureSet &lt;- featureSet[,top1]</code></pre>
+<pre class="r"><code># a&lt;- cor(outcomeFt.CGC[3:ncol(outcomeFt.CGC)], method=&quot;pearson&quot;)
+# CGC.corr &lt;- cor(outcomeFt.CGC[3:ncol(outcomeFt.CGC)], method =&quot;pearson&quot;)</code></pre>
+<pre class="r"><code>drugs &lt;- c('cgc_11047','carboplatin', 'cisplatin', 'gsk1070916', 'gsk1120212', 'gsk461364', 'geldanamycin', 'oxaliplatin', 'pf_3084014', 'pf_3814735', 'pf_4691502', 'paclitaxel')
+variance &lt;- ('10')
+results &lt;- cbind(drugs, variance)
+variance &lt;- ('5')
+results &lt;- rbind(results, cbind(drugs, variance))
+variance &lt;- ('1')
+results &lt;- rbind(results, cbind(drugs, variance))
+results &lt;- as.data.frame(results)
+results &lt;- results[order(results$drug),]
+results[ , 'accuracy'] &lt;- NA</code></pre>
+<div id="model-1---cgc.11047-drug" class="section level1">
+<h1>MODEL 1 - CGC.11047 DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cgc11047Data.10 &lt;- as.data.frame(cbind(truth_set$cgc_11047, top10FeatureSet))
+names(cgc11047Data.10)[1] &lt;- &quot;outcome&quot;
+cgc11047Data.10 &lt;- clean_names(cgc11047Data.10)
+cgc11047Data.10 &lt;- binarizeOutcomeFxn(cgc11047Data.10)
+
+# Formula for the predictive model
+f.cgc11047.10 = as.formula(paste(names(cgc11047Data.10)[1],&quot; ~ &quot;, paste(names(cgc11047Data.10)[2:ncol(cgc11047Data.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cgc11047.lda.fit.10 = train(f.cgc11047.10, 
+                          data=cgc11047Data.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+cgc11047.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 23, 22, 22, 23, 23, ... 
+## Resampling results:
+## 
+##   Accuracy  Kappa 
+##   0.4825    -0.019</code></pre>
+<pre class="r"><code>summary(cgc11047.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.cgc11047.10 = predict(cgc11047.lda.fit.10, cgc11047Data.10)
+pred.table.10&lt;-table(pred.cgc11047.10, cgc11047Data.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                 
+## pred.cgc11047.10 0 1
+##                0 6 5
+##                1 6 8</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.56 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;cgc_11047&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cgc11047Data.5 &lt;- as.data.frame(cbind(truth_set$cgc_11047, top5FeatureSet))
+names(cgc11047Data.5)[1] &lt;- &quot;outcome&quot;
+cgc11047Data.5 &lt;- clean_names(cgc11047Data.5)
+cgc11047Data.5 &lt;- binarizeOutcomeFxn(cgc11047Data.5)
+
+# Formula for the predictive model
+f.cgc11047.5 = as.formula(paste(names(cgc11047Data.5)[1],&quot; ~ &quot;, paste(names(cgc11047Data.5)[2:ncol(cgc11047Data.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cgc11047.lda.fit.5 = train(f.cgc11047.5, 
+                          data=cgc11047Data.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+cgc11047.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 23, 23, 22, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa     
+##   0.4444444  -0.1131313</code></pre>
+<pre class="r"><code>summary(cgc11047.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.cgc11047.5 = predict(cgc11047.lda.fit.5, cgc11047Data.5)
+pred.table.5&lt;-table(pred.cgc11047.5, cgc11047Data.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                
+## pred.cgc11047.5 0 1
+##               0 8 6
+##               1 4 7</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.6 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;cgc_11047&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cgc11047Data.1 &lt;- as.data.frame(cbind(truth_set$cgc_11047, top1FeatureSet))
+names(cgc11047Data.1)[1] &lt;- &quot;outcome&quot;
+cgc11047Data.1 &lt;- clean_names(cgc11047Data.1)
+cgc11047Data.1 &lt;- binarizeOutcomeFxn(cgc11047Data.1)
+
+# Formula for the predictive model
+f.cgc11047.1 = as.formula(paste(names(cgc11047Data.1)[1],&quot; ~ &quot;, paste(names(cgc11047Data.1)[2:ncol(cgc11047Data.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cgc11047.lda.fit.1 = train(f.cgc11047.1, 
+                          data=cgc11047Data.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+cgc11047.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 23, 21, 22, 22, 23, ... 
+## Resampling results:
+## 
+##   Accuracy  Kappa 
+##   0.4825    -0.018</code></pre>
+<pre class="r"><code>summary(cgc11047.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.cgc11047.1 = predict(cgc11047.lda.fit.1, cgc11047Data.1)
+pred.table.1&lt;-table(pred.cgc11047.1, cgc11047Data.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                
+## pred.cgc11047.1 0 1
+##               0 9 4
+##               1 3 9</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.72 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;cgc_11047&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-2---carboplatin-drug" class="section level1">
+<h1>MODEL 2 - CARBOPLATIN DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+carboplatinData.10 &lt;- as.data.frame(cbind(truth_set$carboplatin, top10FeatureSet))
+names(carboplatinData.10)[1] &lt;- &quot;outcome&quot;
+carboplatinData.10 &lt;- clean_names(carboplatinData.10)
+carboplatinData.10 &lt;- binarizeOutcomeFxn(carboplatinData.10)
+
+# Formula for the predictive model
+f.carboplatin.10 = as.formula(paste(names(carboplatinData.10)[1],&quot; ~ &quot;, paste(names(carboplatinData.10)[2:ncol(carboplatinData.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+carboplatin.lda.fit.10 = train(f.carboplatin.10, 
+                          data=carboplatinData.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+carboplatin.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 22, 23, 22, 23, ... 
+## Resampling results:
+## 
+##   Accuracy  Kappa
+##   0.755     0.497</code></pre>
+<pre class="r"><code>summary(carboplatin.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.carboplatin.10 = predict(carboplatin.lda.fit.10, carboplatinData.10)
+pred.table.10&lt;-table(pred.carboplatin.10, carboplatinData.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                    
+## pred.carboplatin.10  0  1
+##                   0 10  2
+##                   1  3 10</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.8 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;carboplatin&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+carboplatinData.5 &lt;- as.data.frame(cbind(truth_set$carboplatin, top5FeatureSet))
+names(carboplatinData.5)[1] &lt;- &quot;outcome&quot;
+carboplatinData.5 &lt;- clean_names(carboplatinData.5)
+carboplatinData.5 &lt;- binarizeOutcomeFxn(carboplatinData.5)
+
+# Formula for the predictive model
+f.carboplatin.5 = as.formula(paste(names(carboplatinData.5)[1],&quot; ~ &quot;, paste(names(carboplatinData.5)[2:ncol(carboplatinData.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+carboplatin.lda.fit.5 = train(f.carboplatin.5, 
+                          data=carboplatinData.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+carboplatin.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 21, 22, 23, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa
+##   0.7491667  0.504</code></pre>
+<pre class="r"><code>summary(carboplatin.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.carboplatin.5 = predict(carboplatin.lda.fit.5, carboplatinData.5)
+pred.table.5&lt;-table(pred.carboplatin.5, carboplatinData.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                   
+## pred.carboplatin.5  0  1
+##                  0  9  1
+##                  1  4 11</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.8 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;carboplatin&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+carboplatinData.1 &lt;- as.data.frame(cbind(truth_set$carboplatin, top1FeatureSet))
+names(carboplatinData.1)[1] &lt;- &quot;outcome&quot;
+carboplatinData.1 &lt;- clean_names(carboplatinData.1)
+carboplatinData.1 &lt;- binarizeOutcomeFxn(carboplatinData.1)
+
+# Formula for the predictive model
+f.carboplatin.1 = as.formula(paste(names(carboplatinData.1)[1],&quot; ~ &quot;, paste(names(carboplatinData.1)[2:ncol(carboplatinData.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+carboplatin.lda.fit.1 = train(f.carboplatin.1, 
+                          data=carboplatinData.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+carboplatin.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 22, 23, 23, 23, 23, ... 
+## Resampling results:
+## 
+##   Accuracy  Kappa
+##   0.7425    0.488</code></pre>
+<pre class="r"><code>summary(carboplatin.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.carboplatin.1 = predict(carboplatin.lda.fit.1, carboplatinData.1)
+pred.table.1&lt;-table(pred.carboplatin.1, carboplatinData.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                   
+## pred.carboplatin.1  0  1
+##                  0 11  4
+##                  1  2  8</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.76 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;carboplatin&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-3---cisplatin-drug" class="section level1">
+<h1>MODEL 3 - CISPLATIN DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cisplatinData.10 &lt;- as.data.frame(cbind(truth_set$cisplatin, top10FeatureSet))
+names(cisplatinData.10)[1] &lt;- &quot;outcome&quot;
+cisplatinData.10 &lt;- clean_names(cisplatinData.10)
+cisplatinData.10 &lt;- binarizeOutcomeFxn(cisplatinData.10)
+
+# Formula for the predictive model
+f.cisplatin.10 = as.formula(paste(names(cisplatinData.10)[1],&quot; ~ &quot;, paste(names(cisplatinData.10)[2:ncol(cisplatinData.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cisplatin.lda.fit.10 = train(f.cisplatin.10, 
+                          data=cisplatinData.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+cisplatin.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 22, 22, 22, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.7929293  0.5585859</code></pre>
+<pre class="r"><code>summary(cisplatin.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.cisplatin.10 = predict(cisplatin.lda.fit.10, cisplatinData.10)
+pred.table.10&lt;-table(pred.cisplatin.10, cisplatinData.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                  
+## pred.cisplatin.10  0  1
+##                 0  8  3
+##                 1  2 12</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.8 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;cisplatin&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cisplatinData.5 &lt;- as.data.frame(cbind(truth_set$cisplatin, top5FeatureSet))
+names(cisplatinData.5)[1] &lt;- &quot;outcome&quot;
+cisplatinData.5 &lt;- clean_names(cisplatinData.5)
+cisplatinData.5 &lt;- binarizeOutcomeFxn(cisplatinData.5)
+
+# Formula for the predictive model
+f.cisplatin.5 = as.formula(paste(names(cisplatinData.5)[1],&quot; ~ &quot;, paste(names(cisplatinData.5)[2:ncol(cisplatinData.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cisplatin.lda.fit.5 = train(f.cisplatin.5, 
+                          data=cisplatinData.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+cisplatin.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 23, 23, 22, 22, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.7727273  0.5030303</code></pre>
+<pre class="r"><code>summary(cisplatin.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.cisplatin.5 = predict(cisplatin.lda.fit.5, cisplatinData.5)
+pred.table.5&lt;-table(pred.cisplatin.5, cisplatinData.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                 
+## pred.cisplatin.5  0  1
+##                0  8  3
+##                1  2 12</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.8 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;cisplatin&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cisplatinData.1 &lt;- as.data.frame(cbind(truth_set$cisplatin, top1FeatureSet))
+names(cisplatinData.1)[1] &lt;- &quot;outcome&quot;
+cisplatinData.1 &lt;- clean_names(cisplatinData.1)
+cisplatinData.1 &lt;- binarizeOutcomeFxn(cisplatinData.1)
+
+# Formula for the predictive model
+f.cisplatin.1 = as.formula(paste(names(cisplatinData.1)[1],&quot; ~ &quot;, paste(names(cisplatinData.1)[2:ncol(cisplatinData.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cisplatin.lda.fit.1 = train(f.cisplatin.1, 
+                          data=cisplatinData.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+cisplatin.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 23, 22, 23, 22, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa
+##   0.8416667  0.65</code></pre>
+<pre class="r"><code>summary(cisplatin.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.cisplatin.1 = predict(cisplatin.lda.fit.1, cisplatinData.1)
+pred.table.1&lt;-table(pred.cisplatin.1, cisplatinData.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                 
+## pred.cisplatin.1  0  1
+##                0  8  1
+##                1  2 14</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.88 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;cisplatin&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-4---gsk1070916-drug" class="section level1">
+<h1>MODEL 4 - GSK1070916 DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1070916Data.10 &lt;- as.data.frame(cbind(truth_set$gsk1070916, top10FeatureSet))
+names(gsk1070916Data.10)[1] &lt;- &quot;outcome&quot;
+gsk1070916Data.10 &lt;- clean_names(gsk1070916Data.10)
+gsk1070916Data.10 &lt;- binarizeOutcomeFxn(gsk1070916Data.10)
+
+# Formula for the predictive model
+f.gsk1070916.10 = as.formula(paste(names(gsk1070916Data.10)[1],&quot; ~ &quot;, paste(names(gsk1070916Data.10)[2:ncol(gsk1070916Data.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1070916.lda.fit.10 = train(f.gsk1070916.10, 
+                          data=gsk1070916Data.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+gsk1070916.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 22, 23, 22, 23, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa     
+##   0.6195286  -0.1037037</code></pre>
+<pre class="r"><code>summary(gsk1070916.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.gsk1070916.10 = predict(gsk1070916.lda.fit.10, gsk1070916Data.10)
+pred.table.10&lt;-table(pred.gsk1070916.10, gsk1070916Data.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                   
+## pred.gsk1070916.10  0  1
+##                  0 14  6
+##                  1  3  2</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.64 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;gsk1070916&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1070916Data.5 &lt;- as.data.frame(cbind(truth_set$gsk1070916, top5FeatureSet))
+names(gsk1070916Data.5)[1] &lt;- &quot;outcome&quot;
+gsk1070916Data.5 &lt;- clean_names(gsk1070916Data.5)
+gsk1070916Data.5 &lt;- binarizeOutcomeFxn(gsk1070916Data.5)
+
+# Formula for the predictive model
+f.gsk1070916.5 = as.formula(paste(names(gsk1070916Data.5)[1],&quot; ~ &quot;, paste(names(gsk1070916Data.5)[2:ncol(gsk1070916Data.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1070916.lda.fit.5 = train(f.gsk1070916.5, 
+                          data=gsk1070916Data.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+gsk1070916.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 22, 22, 23, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa     
+##   0.6445578  -0.0835443</code></pre>
+<pre class="r"><code>summary(gsk1070916.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.gsk1070916.5 = predict(gsk1070916.lda.fit.5, gsk1070916Data.5)
+pred.table.5&lt;-table(pred.gsk1070916.5, gsk1070916Data.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                  
+## pred.gsk1070916.5  0  1
+##                 0 15  5
+##                 1  2  3</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.72 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;gsk1070916&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1070916Data.1 &lt;- as.data.frame(cbind(truth_set$gsk1070916, top1FeatureSet))
+names(gsk1070916Data.1)[1] &lt;- &quot;outcome&quot;
+gsk1070916Data.1 &lt;- clean_names(gsk1070916Data.1)
+gsk1070916Data.1 &lt;- binarizeOutcomeFxn(gsk1070916Data.1)
+
+# Formula for the predictive model
+f.gsk1070916.1 = as.formula(paste(names(gsk1070916Data.1)[1],&quot; ~ &quot;, paste(names(gsk1070916Data.1)[2:ncol(gsk1070916Data.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1070916.lda.fit.1 = train(f.gsk1070916.1, 
+                          data=gsk1070916Data.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+gsk1070916.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 22, 23, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa     
+##   0.5454545  -0.1885057</code></pre>
+<pre class="r"><code>summary(gsk1070916.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.gsk1070916.1 = predict(gsk1070916.lda.fit.1, gsk1070916Data.1)
+pred.table.1&lt;-table(pred.gsk1070916.1, gsk1070916Data.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                  
+## pred.gsk1070916.1  0  1
+##                 0 14  4
+##                 1  3  4</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.72 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;gsk1070916&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-5---gsk1120212-drug" class="section level1">
+<h1>MODEL 5 - GSK1120212 DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1120212Data.10 &lt;- as.data.frame(cbind(truth_set$gsk1120212, top10FeatureSet))
+names(gsk1120212Data.10)[1] &lt;- &quot;outcome&quot;
+gsk1120212Data.10 &lt;- clean_names(gsk1120212Data.10)
+gsk1120212Data.10 &lt;- binarizeOutcomeFxn(gsk1120212Data.10)
+
+# Formula for the predictive model
+f.gsk1120212.10 = as.formula(paste(names(gsk1120212Data.10)[1],&quot; ~ &quot;, paste(names(gsk1120212Data.10)[2:ncol(gsk1120212Data.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1120212.lda.fit.10 = train(f.gsk1120212.10, 
+                          data=gsk1120212Data.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+gsk1120212.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 22, 23, 22, 23, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.6212121  0.1818182</code></pre>
+<pre class="r"><code>summary(gsk1120212.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.gsk1120212.10 = predict(gsk1120212.lda.fit.10, gsk1120212Data.10)
+pred.table.10&lt;-table(pred.gsk1120212.10, gsk1120212Data.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                   
+## pred.gsk1120212.10  0  1
+##                  0  5  1
+##                  1  5 14</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.76 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;gsk1120212&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1120212Data.5 &lt;- as.data.frame(cbind(truth_set$gsk1120212, top5FeatureSet))
+names(gsk1120212Data.5)[1] &lt;- &quot;outcome&quot;
+gsk1120212Data.5 &lt;- clean_names(gsk1120212Data.5)
+gsk1120212Data.5 &lt;- binarizeOutcomeFxn(gsk1120212Data.5)
+
+# Formula for the predictive model
+f.gsk1120212.5 = as.formula(paste(names(gsk1120212Data.5)[1],&quot; ~ &quot;, paste(names(gsk1120212Data.5)[2:ncol(gsk1120212Data.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1120212.lda.fit.5 = train(f.gsk1120212.5, 
+                          data=gsk1120212Data.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+gsk1120212.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 22, 22, 23, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy  Kappa
+##   0.62      0.153</code></pre>
+<pre class="r"><code>summary(gsk1120212.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.gsk1120212.5 = predict(gsk1120212.lda.fit.5, gsk1120212Data.5)
+pred.table.5&lt;-table(pred.gsk1120212.5, gsk1120212Data.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                  
+## pred.gsk1120212.5  0  1
+##                 0  5  2
+##                 1  5 13</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.72 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;gsk1120212&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1120212Data.1 &lt;- as.data.frame(cbind(truth_set$gsk1120212, top1FeatureSet))
+names(gsk1120212Data.1)[1] &lt;- &quot;outcome&quot;
+gsk1120212Data.1 &lt;- clean_names(gsk1120212Data.1)
+gsk1120212Data.1 &lt;- binarizeOutcomeFxn(gsk1120212Data.1)
+
+# Formula for the predictive model
+f.gsk1120212.1 = as.formula(paste(names(gsk1120212Data.1)[1],&quot; ~ &quot;, paste(names(gsk1120212Data.1)[2:ncol(gsk1120212Data.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1120212.lda.fit.1 = train(f.gsk1120212.1, 
+                          data=gsk1120212Data.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+gsk1120212.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 23, 23, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa
+##   0.6733333  0.292</code></pre>
+<pre class="r"><code>summary(gsk1120212.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.gsk1120212.1 = predict(gsk1120212.lda.fit.1, gsk1120212Data.1)
+pred.table.1&lt;-table(pred.gsk1120212.1, gsk1120212Data.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                  
+## pred.gsk1120212.1  0  1
+##                 0  6  2
+##                 1  4 13</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.76 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;gsk1120212&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-6---gsk461364-drug" class="section level1">
+<h1>MODEL 6 - GSK461364 DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk461364Data.10 &lt;- as.data.frame(cbind(truth_set$gsk461364, top10FeatureSet))
+names(gsk461364Data.10)[1] &lt;- &quot;outcome&quot;
+gsk461364Data.10 &lt;- clean_names(gsk461364Data.10)
+gsk461364Data.10 &lt;- binarizeOutcomeFxn(gsk461364Data.10)
+
+# Formula for the predictive model
+f.gsk461364.10 = as.formula(paste(names(gsk461364Data.10)[1],&quot; ~ &quot;, paste(names(gsk461364Data.10)[2:ncol(gsk461364Data.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk461364.lda.fit.10 = train(f.gsk461364.10, 
+                          data=gsk461364Data.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+gsk461364.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 23, 23, 22, 22, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.7323232  0.4272727</code></pre>
+<pre class="r"><code>summary(gsk461364.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.gsk461364.10 = predict(gsk461364.lda.fit.10, gsk461364Data.10)
+pred.table.10&lt;-table(pred.gsk461364.10, gsk461364Data.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                  
+## pred.gsk461364.10  0  1
+##                 0  7  1
+##                 1  3 14</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.84 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;gsk461364&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk461364Data.5 &lt;- as.data.frame(cbind(truth_set$gsk461364, top5FeatureSet))
+names(gsk461364Data.5)[1] &lt;- &quot;outcome&quot;
+gsk461364Data.5 &lt;- clean_names(gsk461364Data.5)
+gsk461364Data.5 &lt;- binarizeOutcomeFxn(gsk461364Data.5)
+
+# Formula for the predictive model
+f.gsk461364.5 = as.formula(paste(names(gsk461364Data.5)[1],&quot; ~ &quot;, paste(names(gsk461364Data.5)[2:ncol(gsk461364Data.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk461364.lda.fit.5 = train(f.gsk461364.5, 
+                          data=gsk461364Data.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+gsk461364.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 23, 23, 22, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.8164983  0.6040404</code></pre>
+<pre class="r"><code>summary(gsk461364.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.gsk461364.5 = predict(gsk461364.lda.fit.5, gsk461364Data.5)
+pred.table.5&lt;-table(pred.gsk461364.5, gsk461364Data.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                 
+## pred.gsk461364.5  0  1
+##                0  6  1
+##                1  4 14</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.8 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;gsk461364&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk461364Data.1 &lt;- as.data.frame(cbind(truth_set$gsk461364, top1FeatureSet))
+names(gsk461364Data.1)[1] &lt;- &quot;outcome&quot;
+gsk461364Data.1 &lt;- clean_names(gsk461364Data.1)
+gsk461364Data.1 &lt;- binarizeOutcomeFxn(gsk461364Data.1)
+
+# Formula for the predictive model
+f.gsk461364.1 = as.formula(paste(names(gsk461364Data.1)[1],&quot; ~ &quot;, paste(names(gsk461364Data.1)[2:ncol(gsk461364Data.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk461364.lda.fit.1 = train(f.gsk461364.1, 
+                          data=gsk461364Data.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+gsk461364.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 22, 23, 23, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa   
+##   0.7594502  0.485567</code></pre>
+<pre class="r"><code>summary(gsk461364.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.gsk461364.1 = predict(gsk461364.lda.fit.1, gsk461364Data.1)
+pred.table.1&lt;-table(pred.gsk461364.1, gsk461364Data.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                 
+## pred.gsk461364.1  0  1
+##                0  6  1
+##                1  4 14</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.8 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;gsk461364&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-7---geldanamycin-drug" class="section level1">
+<h1>MODEL 7 - GELDANAMYCIN DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+geldanamycinData &lt;- as.data.frame(cbind(truth_set$geldanamycin, top10FeatureSet))
+names(geldanamycinData)[1] &lt;- &quot;outcome&quot;
+geldanamycinData &lt;- clean_names(geldanamycinData)
+geldanamycinData&lt;- binarizeOutcomeFxn(geldanamycinData)
+
+# Formula for the predictive model
+f.geldanamycin = as.formula(paste(names(geldanamycinData)[1],&quot; ~ &quot;, paste(names(geldanamycinData)[2:ncol(geldanamycinData)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+geldanamycin.lda.fit. = train(f.geldanamycin, 
+                          data=geldanamycinData, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+geldanamycin.lda.fit.</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 21, 22, 23, 22, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.5808081  0.1848485</code></pre>
+<pre class="r"><code>summary(geldanamycin.lda.fit.)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.geldanamycin = predict(geldanamycin.lda.fit., geldanamycinData)
+table(pred.geldanamycin, geldanamycinData$outcome)</code></pre>
+<pre><code>##                  
+## pred.geldanamycin  0  1
+##                 0  8  3
+##                 1  4 10</code></pre>
+<p><br></p>
+</div>
+<div id="model-8---oxaliplatin-drug" class="section level1">
+<h1>MODEL 8 - OXALIPLATIN DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+oxaliplatinData.10 &lt;- as.data.frame(cbind(truth_set$oxaliplatin, top10FeatureSet))
+names(oxaliplatinData.10)[1] &lt;- &quot;outcome&quot;
+oxaliplatinData.10 &lt;- clean_names(oxaliplatinData.10)
+oxaliplatinData.10 &lt;- binarizeOutcomeFxn(oxaliplatinData.10)
+
+# Formula for the predictive model
+f.oxaliplatin.10 = as.formula(paste(names(oxaliplatinData.10)[1],&quot; ~ &quot;, paste(names(oxaliplatinData.10)[2:ncol(oxaliplatinData.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+oxaliplatin.lda.fit.10 = train(f.oxaliplatin.10, 
+                          data=oxaliplatinData.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+oxaliplatin.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 23, 22, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa
+##   0.7608333  0.525</code></pre>
+<pre class="r"><code>summary(oxaliplatin.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.oxaliplatin.10 = predict(oxaliplatin.lda.fit.10, oxaliplatinData.10)
+pred.table.10&lt;-table(pred.oxaliplatin.10, oxaliplatinData.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                    
+## pred.oxaliplatin.10  0  1
+##                   0 10  3
+##                   1  2 10</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.8 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;oxaliplatin&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+oxaliplatinData.5 &lt;- as.data.frame(cbind(truth_set$oxaliplatin, top5FeatureSet))
+names(oxaliplatinData.5)[1] &lt;- &quot;outcome&quot;
+oxaliplatinData.5 &lt;- clean_names(oxaliplatinData.5)
+oxaliplatinData.5 &lt;- binarizeOutcomeFxn(oxaliplatinData.5)
+
+# Formula for the predictive model
+f.oxaliplatin.5 = as.formula(paste(names(oxaliplatinData.5)[1],&quot; ~ &quot;, paste(names(oxaliplatinData.5)[2:ncol(oxaliplatinData.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+oxaliplatin.lda.fit.5 = train(f.oxaliplatin.5, 
+                          data=oxaliplatinData.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+oxaliplatin.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 23, 23, 22, 22, 22, ... 
+## Resampling results:
+## 
+##   Accuracy  Kappa
+##   0.8375    0.67</code></pre>
+<pre class="r"><code>summary(oxaliplatin.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.oxaliplatin.5 = predict(oxaliplatin.lda.fit.5, oxaliplatinData.5)
+pred.table.5&lt;-table(pred.oxaliplatin.5, oxaliplatinData.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                   
+## pred.oxaliplatin.5  0  1
+##                  0 10  3
+##                  1  2 10</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.8 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;oxaliplatin&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+oxaliplatinData.1 &lt;- as.data.frame(cbind(truth_set$oxaliplatin, top1FeatureSet))
+names(oxaliplatinData.1)[1] &lt;- &quot;outcome&quot;
+oxaliplatinData.1 &lt;- clean_names(oxaliplatinData.1)
+oxaliplatinData.1 &lt;- binarizeOutcomeFxn(oxaliplatinData.1)
+
+# Formula for the predictive model
+f.oxaliplatin.1 = as.formula(paste(names(oxaliplatinData.1)[1],&quot; ~ &quot;, paste(names(oxaliplatinData.1)[2:ncol(oxaliplatinData.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+oxaliplatin.lda.fit.1 = train(f.oxaliplatin.1, 
+                          data=oxaliplatinData.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+oxaliplatin.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 23, 23, 22, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.8636364  0.7141414</code></pre>
+<pre class="r"><code>summary(oxaliplatin.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.oxaliplatin.1 = predict(oxaliplatin.lda.fit.1, oxaliplatinData.1)
+pred.table.1&lt;-table(pred.oxaliplatin.1, oxaliplatinData.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                   
+## pred.oxaliplatin.1  0  1
+##                  0 11  1
+##                  1  1 12</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.92 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;oxaliplatin&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-9---pf.3084014-drug" class="section level1">
+<h1>MODEL 9 - PF.3084014 DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3084014Data.10 &lt;- as.data.frame(cbind(truth_set$pf_3084014, top10FeatureSet))
+names(pf_3084014Data.10)[1] &lt;- &quot;outcome&quot;
+pf_3084014Data.10 &lt;- clean_names(pf_3084014Data.10)
+pf_3084014Data.10 &lt;- binarizeOutcomeFxn(pf_3084014Data.10)
+
+# Formula for the predictive model
+f.pf_3084014.10 = as.formula(paste(names(pf_3084014Data.10)[1],&quot; ~ &quot;, paste(names(pf_3084014Data.10)[2:ncol(pf_3084014Data.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3084014.lda.fit.10 = train(f.pf_3084014.10, 
+                          data=pf_3084014Data.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+pf_3084014.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 22, 22, 22, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.7382155  0.4666667</code></pre>
+<pre class="r"><code>summary(pf_3084014.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.pf_3084014.10 = predict(pf_3084014.lda.fit.10, pf_3084014Data.10)
+pred.table.10&lt;-table(pred.pf_3084014.10, pf_3084014Data.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                   
+## pred.pf_3084014.10  0  1
+##                  0 11  4
+##                  1  3  7</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.72 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;pf_3084014&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3084014Data.5 &lt;- as.data.frame(cbind(truth_set$pf_3084014, top5FeatureSet))
+names(pf_3084014Data.5)[1] &lt;- &quot;outcome&quot;
+pf_3084014Data.5 &lt;- clean_names(pf_3084014Data.5)
+pf_3084014Data.5 &lt;- binarizeOutcomeFxn(pf_3084014Data.5)
+
+# Formula for the predictive model
+f.pf_3084014.5 = as.formula(paste(names(pf_3084014Data.5)[1],&quot; ~ &quot;, paste(names(pf_3084014Data.5)[2:ncol(pf_3084014Data.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3084014.lda.fit.5 = train(f.pf_3084014.5, 
+                          data=pf_3084014Data.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+pf_3084014.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 21, 23, 22, 23, 22, 23, ... 
+## Resampling results:
+## 
+##   Accuracy  Kappa    
+##   0.773569  0.5282828</code></pre>
+<pre class="r"><code>summary(pf_3084014.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.pf_3084014.5 = predict(pf_3084014.lda.fit.5, pf_3084014Data.5)
+pred.table.5&lt;-table(pred.pf_3084014.5, pf_3084014Data.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                  
+## pred.pf_3084014.5  0  1
+##                 0 11  4
+##                 1  3  7</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.72 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;pf_3084014&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3084014Data.1 &lt;- as.data.frame(cbind(truth_set$pf_3084014, top1FeatureSet))
+names(pf_3084014Data.1)[1] &lt;- &quot;outcome&quot;
+pf_3084014Data.1 &lt;- clean_names(pf_3084014Data.1)
+pf_3084014Data.1 &lt;- binarizeOutcomeFxn(pf_3084014Data.1)
+
+# Formula for the predictive model
+f.pf_3084014.1 = as.formula(paste(names(pf_3084014Data.1)[1],&quot; ~ &quot;, paste(names(pf_3084014Data.1)[2:ncol(pf_3084014Data.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3084014.lda.fit.1 = train(f.pf_3084014.1, 
+                          data=pf_3084014Data.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+pf_3084014.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 23, 23, 23, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.7811448  0.5424242</code></pre>
+<pre class="r"><code>summary(pf_3084014.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.pf_3084014.1 = predict(pf_3084014.lda.fit.1, pf_3084014Data.1)
+pred.table.1&lt;-table(pred.pf_3084014.1, pf_3084014Data.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                  
+## pred.pf_3084014.1  0  1
+##                 0 12  4
+##                 1  2  7</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.76 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;pf_3084014&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-10---pf.3814735-drug" class="section level1">
+<h1>MODEL 10 - PF.3814735 DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3814735Data.10 &lt;- as.data.frame(cbind(truth_set$pf_3814735, top10FeatureSet))
+names(pf_3814735Data.10)[1] &lt;- &quot;outcome&quot;
+pf_3814735Data.10 &lt;- clean_names(pf_3814735Data.10)
+pf_3814735Data.10 &lt;- binarizeOutcomeFxn(pf_3814735Data.10)
+
+# Formula for the predictive model
+f.pf_3814735.10 = as.formula(paste(names(pf_3814735Data.10)[1],&quot; ~ &quot;, paste(names(pf_3814735Data.10)[2:ncol(pf_3814735Data.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3814735.lda.fit.10 = train(f.pf_3814735.10, 
+                          data=pf_3814735Data.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+pf_3814735.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 22, 22, 23, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa
+##   0.6666667  0.293</code></pre>
+<pre class="r"><code>summary(pf_3814735.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.pf_3814735.10 = predict(pf_3814735.lda.fit.10, pf_3814735Data.10)
+pred.table.10&lt;-table(pred.pf_3814735.10, pf_3814735Data.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                   
+## pred.pf_3814735.10  0  1
+##                  0 13  4
+##                  1  2  6</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.76 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;pf_3814735&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3814735Data.5 &lt;- as.data.frame(cbind(truth_set$pf_3814735, top5FeatureSet))
+names(pf_3814735Data.5)[1] &lt;- &quot;outcome&quot;
+pf_3814735Data.5 &lt;- clean_names(pf_3814735Data.5)
+pf_3814735Data.5 &lt;- binarizeOutcomeFxn(pf_3814735Data.5)
+
+# Formula for the predictive model
+f.pf_3814735.5 = as.formula(paste(names(pf_3814735Data.5)[1],&quot; ~ &quot;, paste(names(pf_3814735Data.5)[2:ncol(pf_3814735Data.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3814735.lda.fit.5 = train(f.pf_3814735.5, 
+                          data=pf_3814735Data.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+pf_3814735.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 22, 23, 23, 22, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.7121212  0.3888889</code></pre>
+<pre class="r"><code>summary(pf_3814735.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.pf_3814735.5 = predict(pf_3814735.lda.fit.5, pf_3814735Data.5)
+pred.table.5&lt;-table(pred.pf_3814735.5, pf_3814735Data.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                  
+## pred.pf_3814735.5  0  1
+##                 0 13  4
+##                 1  2  6</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.76 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;pf_3814735&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3814735Data.1 &lt;- as.data.frame(cbind(truth_set$pf_3814735, top1FeatureSet))
+names(pf_3814735Data.1)[1] &lt;- &quot;outcome&quot;
+pf_3814735Data.1 &lt;- clean_names(pf_3814735Data.1)
+pf_3814735Data.1 &lt;- binarizeOutcomeFxn(pf_3814735Data.1)
+
+# Formula for the predictive model
+f.pf_3814735.1 = as.formula(paste(names(pf_3814735Data.1)[1],&quot; ~ &quot;, paste(names(pf_3814735Data.1)[2:ncol(pf_3814735Data.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3814735.lda.fit.1 = train(f.pf_3814735.1, 
+                          data=pf_3814735Data.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+pf_3814735.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 23, 22, 22, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.7323232  0.4323232</code></pre>
+<pre class="r"><code>summary(pf_3814735.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.pf_3814735.1 = predict(pf_3814735.lda.fit.1, pf_3814735Data.1)
+pred.table.1&lt;-table(pred.pf_3814735.1, pf_3814735Data.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                  
+## pred.pf_3814735.1  0  1
+##                 0 13  4
+##                 1  2  6</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.76 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;pf_3814735&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-11---pf.4691502-drug" class="section level1">
+<h1>MODEL 11 - PF.4691502 DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_4691502Data.10 &lt;- as.data.frame(cbind(truth_set$pf_4691502, top10FeatureSet))
+names(pf_4691502Data.10)[1] &lt;- &quot;outcome&quot;
+pf_4691502Data.10 &lt;- clean_names(pf_4691502Data.10)
+pf_4691502Data.10 &lt;- binarizeOutcomeFxn(pf_4691502Data.10)
+
+# Formula for the predictive model
+f.pf_4691502.10 = as.formula(paste(names(pf_4691502Data.10)[1],&quot; ~ &quot;, paste(names(pf_4691502Data.10)[2:ncol(pf_4691502Data.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_4691502.lda.fit.10 = train(f.pf_4691502.10, 
+                          data=pf_4691502Data.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+pf_4691502.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 22, 22, 23, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa     
+##   0.5942761  0.07777778</code></pre>
+<pre class="r"><code>summary(pf_4691502.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.pf_4691502.10 = predict(pf_4691502.lda.fit.10, pf_4691502Data.10)
+pred.table.10&lt;-table(pred.pf_4691502.10, pf_4691502Data.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                   
+## pred.pf_4691502.10  0  1
+##                  0  3  2
+##                  1  7 13</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.64 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;pf_4691502&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_4691502Data.5 &lt;- as.data.frame(cbind(truth_set$pf_4691502, top5FeatureSet))
+names(pf_4691502Data.5)[1] &lt;- &quot;outcome&quot;
+pf_4691502Data.5 &lt;- clean_names(pf_4691502Data.5)
+pf_4691502Data.5 &lt;- binarizeOutcomeFxn(pf_4691502Data.5)
+
+# Formula for the predictive model
+f.pf_4691502.5 = as.formula(paste(names(pf_4691502Data.5)[1],&quot; ~ &quot;, paste(names(pf_4691502Data.5)[2:ncol(pf_4691502Data.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_4691502.lda.fit.5 = train(f.pf_4691502.5, 
+                          data=pf_4691502Data.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+pf_4691502.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 23, 22, 23, 22, 23, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.6380471  0.1949495</code></pre>
+<pre class="r"><code>summary(pf_4691502.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.pf_4691502.5 = predict(pf_4691502.lda.fit.5, pf_4691502Data.5)
+pred.table.5&lt;-table(pred.pf_4691502.5, pf_4691502Data.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                  
+## pred.pf_4691502.5  0  1
+##                 0  3  3
+##                 1  7 12</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.6 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;pf_4691502&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_4691502Data.1 &lt;- as.data.frame(cbind(truth_set$pf_4691502, top1FeatureSet))
+names(pf_4691502Data.1)[1] &lt;- &quot;outcome&quot;
+pf_4691502Data.1 &lt;- clean_names(pf_4691502Data.1)
+pf_4691502Data.1 &lt;- binarizeOutcomeFxn(pf_4691502Data.1)
+
+# Formula for the predictive model
+f.pf_4691502.1 = as.formula(paste(names(pf_4691502Data.1)[1],&quot; ~ &quot;, paste(names(pf_4691502Data.1)[2:ncol(pf_4691502Data.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_4691502.lda.fit.1 = train(f.pf_4691502.1, 
+                          data=pf_4691502Data.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+pf_4691502.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 23, 23, 22, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa     
+##   0.5521886  0.02424242</code></pre>
+<pre class="r"><code>summary(pf_4691502.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.pf_4691502.1 = predict(pf_4691502.lda.fit.1, pf_4691502Data.1)
+pred.table.1&lt;-table(pred.pf_4691502.1, pf_4691502Data.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                  
+## pred.pf_4691502.1  0  1
+##                 0  7  3
+##                 1  3 12</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.76 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;pf_4691502&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+</div>
+<div id="model-12---paclitaxel-drug" class="section level1">
+<h1>MODEL 12 - PACLITAXEL DRUG</h1>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+paclitaxelData.10 &lt;- as.data.frame(cbind(truth_set$paclitaxel, top10FeatureSet))
+names(paclitaxelData.10)[1] &lt;- &quot;outcome&quot;
+paclitaxelData.10 &lt;- clean_names(paclitaxelData.10)
+paclitaxelData.10 &lt;- binarizeOutcomeFxn(paclitaxelData.10)
+
+# Formula for the predictive model
+f.paclitaxel.10 = as.formula(paste(names(paclitaxelData.10)[1],&quot; ~ &quot;, paste(names(paclitaxelData.10)[2:ncol(paclitaxelData.10)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+paclitaxel.lda.fit.10 = train(f.paclitaxel.10, 
+                          data=paclitaxelData.10, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+paclitaxel.lda.fit.10</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##   25 samples
+## 1865 predictors
+##    2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 23, 22, 23, 23, 22, ... 
+## Resampling results:
+## 
+##   Accuracy  Kappa 
+##   0.495     -0.112</code></pre>
+<pre class="r"><code>summary(paclitaxel.lda.fit.10)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       3734   -none-     numeric  
+## scaling     1867   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames      1867   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.paclitaxel.10 = predict(paclitaxel.lda.fit.10, paclitaxelData.10)
+pred.table.10&lt;-table(pred.paclitaxel.10, paclitaxelData.10$outcome)
+pred.table.10</code></pre>
+<pre><code>##                   
+## pred.paclitaxel.10  0  1
+##                  0  4  3
+##                  1  6 12</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.64 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;paclitaxel&quot; &amp; results[,2]==&quot;10&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+paclitaxelData.5 &lt;- as.data.frame(cbind(truth_set$paclitaxel, top5FeatureSet))
+names(paclitaxelData.5)[1] &lt;- &quot;outcome&quot;
+paclitaxelData.5 &lt;- clean_names(paclitaxelData.5)
+paclitaxelData.5 &lt;- binarizeOutcomeFxn(paclitaxelData.5)
+
+# Formula for the predictive model
+f.paclitaxel.5 = as.formula(paste(names(paclitaxelData.5)[1],&quot; ~ &quot;, paste(names(paclitaxelData.5)[2:ncol(paclitaxelData.5)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+paclitaxel.lda.fit.5 = train(f.paclitaxel.5, 
+                          data=paclitaxelData.5, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+paclitaxel.lda.fit.5</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 933 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 22, 23, 22, 23, 23, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa 
+##   0.5233333  -0.024</code></pre>
+<pre class="r"><code>summary(paclitaxel.lda.fit.5)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior          2   -none-     numeric  
+## counts         2   -none-     numeric  
+## means       1870   -none-     numeric  
+## scaling      935   -none-     numeric  
+## lev            2   -none-     character
+## svd            1   -none-     numeric  
+## N              1   -none-     numeric  
+## call           3   -none-     call     
+## xNames       935   -none-     character
+## problemType    1   -none-     character
+## tuneValue      1   data.frame list     
+## obsLevels      2   -none-     character
+## param          0   -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.paclitaxel.5 = predict(paclitaxel.lda.fit.5, paclitaxelData.5)
+pred.table.5&lt;-table(pred.paclitaxel.5, paclitaxelData.5$outcome)
+pred.table.5</code></pre>
+<pre><code>##                  
+## pred.paclitaxel.5  0  1
+##                 0  5  2
+##                 1  5 13</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.72 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;paclitaxel&quot; &amp; results[,2]==&quot;5&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<pre class="r"><code># Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+paclitaxelData.1 &lt;- as.data.frame(cbind(truth_set$paclitaxel, top1FeatureSet))
+names(paclitaxelData.1)[1] &lt;- &quot;outcome&quot;
+paclitaxelData.1 &lt;- clean_names(paclitaxelData.1)
+paclitaxelData.1 &lt;- binarizeOutcomeFxn(paclitaxelData.1)
+
+# Formula for the predictive model
+f.paclitaxel.1 = as.formula(paste(names(paclitaxelData.1)[1],&quot; ~ &quot;, paste(names(paclitaxelData.1)[2:ncol(paclitaxelData.1)], collapse= &quot;+&quot;)))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+paclitaxel.lda.fit.1 = train(f.paclitaxel.1, 
+                          data=paclitaxelData.1, 
+                          method=&quot;lda&quot;,
+                          trControl = trainControl(method = &quot;repeatedcv&quot;, repeats=10))
+# Print the model
+paclitaxel.lda.fit.1</code></pre>
+<pre><code>## Linear Discriminant Analysis 
+## 
+##  25 samples
+## 187 predictors
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold, repeated 10 times) 
+## Summary of sample sizes: 22, 22, 23, 23, 22, 22, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.5925926  0.1333333</code></pre>
+<pre class="r"><code>summary(paclitaxel.lda.fit.1)</code></pre>
+<pre><code>##             Length Class      Mode     
+## prior         2    -none-     numeric  
+## counts        2    -none-     numeric  
+## means       378    -none-     numeric  
+## scaling     189    -none-     numeric  
+## lev           2    -none-     character
+## svd           1    -none-     numeric  
+## N             1    -none-     numeric  
+## call          3    -none-     call     
+## xNames      189    -none-     character
+## problemType   1    -none-     character
+## tuneValue     1    data.frame list     
+## obsLevels     2    -none-     character
+## param         0    -none-     list</code></pre>
+<pre class="r"><code># Predict using the training set again
+pred.paclitaxel.1 = predict(paclitaxel.lda.fit.1, paclitaxelData.1)
+pred.table.1&lt;-table(pred.paclitaxel.1, paclitaxelData.1$outcome)
+pred.table.1</code></pre>
+<pre><code>##                  
+## pred.paclitaxel.1  0  1
+##                 0  7  4
+##                 1  3 11</code></pre>
+<pre class="r"><code>acc &lt;- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste(&quot;accuracy:&quot;, acc, &quot;%&quot;)</code></pre>
+<pre><code>## [1] &quot;accuracy: 0.72 %&quot;</code></pre>
+<pre class="r"><code>ind &lt;- which((results[,1]==&quot;paclitaxel&quot; &amp; results[,2]==&quot;1&quot;))
+results[ind, 3] &lt;- acc</code></pre>
+<p><br></p>
+<pre class="r"><code>results</code></pre>
+<pre><code>##           drugs variance accuracy
+## 2   carboplatin       10     0.80
+## 14  carboplatin        5     0.80
+## 26  carboplatin        1     0.76
+## 1     cgc_11047       10     0.56
+## 13    cgc_11047        5     0.60
+## 25    cgc_11047        1     0.72
+## 3     cisplatin       10     0.80
+## 15    cisplatin        5     0.80
+## 27    cisplatin        1     0.88
+## 7  geldanamycin       10       NA
+## 19 geldanamycin        5       NA
+## 31 geldanamycin        1       NA
+## 4    gsk1070916       10     0.64
+## 16   gsk1070916        5     0.72
+## 28   gsk1070916        1     0.72
+## 5    gsk1120212       10     0.76
+## 17   gsk1120212        5     0.72
+## 29   gsk1120212        1     0.76
+## 6     gsk461364       10     0.84
+## 18    gsk461364        5     0.80
+## 30    gsk461364        1     0.80
+## 8   oxaliplatin       10     0.80
+## 20  oxaliplatin        5     0.80
+## 32  oxaliplatin        1     0.92
+## 12   paclitaxel       10     0.64
+## 24   paclitaxel        5     0.72
+## 36   paclitaxel        1     0.72
+## 9    pf_3084014       10     0.72
+## 21   pf_3084014        5     0.72
+## 33   pf_3084014        1     0.76
+## 10   pf_3814735       10     0.76
+## 22   pf_3814735        5     0.76
+## 34   pf_3814735        1     0.76
+## 11   pf_4691502       10     0.64
+## 23   pf_4691502        5     0.60
+## 35   pf_4691502        1     0.76</code></pre>
+</div>
 
 
 

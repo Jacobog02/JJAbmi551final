@@ -1,0 +1,1575 @@
+---
+title: "Final - LDA & QDA"
+author: "Justine Nguyen"
+date: "March 12, 2019"
+output: html_document
+---
+
+```{r 1.setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r 2.library, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(caret) # for LDA modeling
+library(janitor)
+library(corrplot)
+library(genefilter)
+```
+
+```{r 3.fxnDefinitions}
+## FUNCTION FOR BINARIZING THE OUTCOME
+binarizeOutcomeFxn <- function(data) 
+  {
+  outcomeBinary <- ifelse(data[1] == '1', 1, 0)
+  data[1] <- as.factor(outcomeBinary)
+  
+  return(data)
+  }
+```
+
+
+```{r 4.readData}
+# Read in the cleaned expression data
+# NOTE: data has features are ROWS when reading it from the flat file.
+# Also clean the names of the genes in the expression data
+expression <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+expression <- clean_names(expression)
+
+
+# Read in the subtype data
+subtypes <- read_tsv("../data/clean_subtypes.txt")
+
+# Read in the truth set
+truth_set <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+# Clean row names of truth set
+truth_set <- clean_names(truth_set)
+
+# Create merged feature set
+featureSet<-cbind(subtypes[,2],t(expression))
+
+# Check dimensions of allthe data read in to see if it was correct
+dim(expression)
+dim(subtypes)
+dim(truth_set)
+dim(featureSet)
+```
+
+```{r 5.varianceSelect}
+# Create a variance matrix of the expression data
+expVar <- (rowVars(expression))
+hist(expVar)
+expVar <- as.data.frame(expVar)
+names(expVar) <- c('variance')
+
+# Look at the min and max variance in the expression data
+paste('max variance:', max(expVar[,1]))
+paste('min variance:', min(expVar[,1]))
+
+# Pull the quantiles of the variance matrix by increments of 5%
+quantile(expVar$variance, seq(0,1,by=0.01))
+
+# Grab the genes with the top 10 percentile of greatest varaince
+top10<- expVar$variance > '0.98099145'
+# Save the expression data of the genes with top 10 percentile of greatest variance
+top10FeatureSet <- featureSet[,top10]
+
+# Grab the genes with the top 5 percentile of greatest varaince
+top5<- expVar$variance > '1.63523217'
+# Save the expres'sion data of the genes with top 5 percentile of greatest variance
+top5FeatureSet <- featureSet[,top5]
+
+# Grab the genes with the top 1 percentile of greatest varaince
+top1<- expVar$variance > '3.57993931'
+# Save the expres'sion data of the genes with top 1 percentile of greatest variance
+top1FeatureSet <- featureSet[,top1]
+
+```
+
+```{r CORRELATION.1perVar}
+
+(cor(top10FeatureSet[3:ncol(top1FeatureSet)], method="pearson"))
+
+
+cor.1<- cor(top1FeatureSet[3:ncol(top1FeatureSet)])
+cor.1df <- as.data.frame(as.table(cor.1))
+cor.1sort<- cor.1df %>%  arrange(desc(Freq)) %>% filter(abs(Freq)>0.6 & abs(Freq)<1)
+cor.1sort
+sortNames <- dplyr::pull(cor.1sort, 1)
+colinear.names1 <- c()
+for (i in 1:length(sortNames)){
+  if (i%%2 == 0){
+    colinear.names1 <- append(colinear.names1, sortNames[i])
+  }
+}
+
+
+
+
+```
+
+```{r 6.fileTrainTest}
+drugs <- c('cgc_11047','carboplatin', 'cisplatin', 'gsk1070916', 'gsk1120212', 'gsk461364', 'geldanamycin', 'oxaliplatin', 'pf_3084014', 'pf_3814735', 'pf_4691502', 'paclitaxel')
+variance <- ('10')
+results <- cbind(drugs, variance)
+variance <- ('5')
+results <- rbind(results, cbind(drugs, variance))
+variance <- ('1')
+results <- rbind(results, cbind(drugs, variance))
+results <- as.data.frame(results)
+results <- results[order(results$drug),]
+results[ , 'train_accuracy'] <- NA
+results[ , 'test_accuracy'] <- NA
+```
+
+
+# MODEL 1 - CGC.11047 DRUG
+
+```{r 7.cgc11047Model.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cgc11047Data.10 <- as.data.frame(cbind(truth_set$cgc_11047, top10FeatureSet))
+names(cgc11047Data.10)[1] <- "outcome"
+cgc11047Data.10 <- clean_names(cgc11047Data.10)
+cgc11047Data.10 <- binarizeOutcomeFxn(cgc11047Data.10)
+
+# Formula for the predictive model
+f.10 = as.formula(paste(names(cgc11047Data.10)[1]," ~ ", paste(names(cgc11047Data.10)[2:ncol(cgc11047Data.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cgc11047.lda.fit.10 = train(f.10, 
+                          data=cgc11047Data.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+cgc11047.lda.fit.10
+summary(cgc11047.lda.fit.10)
+
+# Predict using the training set again
+pred.cgc11047.10 = predict(cgc11047.lda.fit.10, cgc11047Data.10)
+pred.table.10<-table(pred.cgc11047.10, cgc11047Data.10$outcome)
+pred.table.10
+# TEST ACCURACY ON TRAINING DATA
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="cgc_11047" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 8.cgc11047Model.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cgc11047Data.5 <- as.data.frame(cbind(truth_set$cgc_11047, top5FeatureSet))
+names(cgc11047Data.5)[1] <- "outcome"
+cgc11047Data.5 <- clean_names(cgc11047Data.5)
+cgc11047Data.5 <- binarizeOutcomeFxn(cgc11047Data.5)
+
+# Formula for the predictive model
+f.cgc11047.5 = as.formula(paste(names(cgc11047Data.5)[1]," ~ ", paste(names(cgc11047Data.5)[2:ncol(cgc11047Data.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cgc11047.lda.fit.5 = train(f.cgc11047.5, 
+                          data=cgc11047Data.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+cgc11047.lda.fit.5
+summary(cgc11047.lda.fit.5)
+
+# Predict using the training set again
+pred.cgc11047.5 = predict(cgc11047.lda.fit.5, cgc11047Data.5)
+pred.table.5<-table(pred.cgc11047.5, cgc11047Data.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="cgc_11047" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 9.cgc11047Model.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cgc11047Data.1 <- as.data.frame(cbind(truth_set$cgc_11047, top1FeatureSet))
+names(cgc11047Data.1)[1] <- "outcome"
+cgc11047Data.1 <- clean_names(cgc11047Data.1)
+cgc11047Data.1 <- binarizeOutcomeFxn(cgc11047Data.1)
+
+# Formula for the predictive model
+f.cgc11047.1 = as.formula(paste(names(cgc11047Data.1)[1]," ~ ", paste(names(cgc11047Data.1)[2:ncol(cgc11047Data.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cgc11047.lda.fit.1 = train(f.cgc11047.1, 
+                          data=cgc11047Data.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+cgc11047.lda.fit.1
+summary(cgc11047.lda.fit.1)
+
+# Predict using the training set again
+pred.cgc11047.1 = predict(cgc11047.lda.fit.1, cgc11047Data.1)
+pred.table.1<-table(pred.cgc11047.1, cgc11047Data.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="cgc_11047" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 2 - CARBOPLATIN DRUG
+
+```{r 10.carboplatinModel.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+carboplatinData.10 <- as.data.frame(cbind(truth_set$carboplatin, top10FeatureSet))
+names(carboplatinData.10)[1] <- "outcome"
+carboplatinData.10 <- clean_names(carboplatinData.10)
+carboplatinData.10 <- binarizeOutcomeFxn(carboplatinData.10)
+
+# Formula for the predictive model
+f.carboplatin.10 = as.formula(paste(names(carboplatinData.10)[1]," ~ ", paste(names(carboplatinData.10)[2:ncol(carboplatinData.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+carboplatin.lda.fit.10 = train(f.carboplatin.10, 
+                          data=carboplatinData.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+carboplatin.lda.fit.10
+summary(carboplatin.lda.fit.10)
+
+# Predict using the training set again
+pred.carboplatin.10 = predict(carboplatin.lda.fit.10, carboplatinData.10)
+pred.table.10<-table(pred.carboplatin.10, carboplatinData.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="carboplatin" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 11.carboplatinModel.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+carboplatinData.5 <- as.data.frame(cbind(truth_set$carboplatin, top5FeatureSet))
+names(carboplatinData.5)[1] <- "outcome"
+carboplatinData.5 <- clean_names(carboplatinData.5)
+carboplatinData.5 <- binarizeOutcomeFxn(carboplatinData.5)
+
+# Formula for the predictive model
+f.carboplatin.5 = as.formula(paste(names(carboplatinData.5)[1]," ~ ", paste(names(carboplatinData.5)[2:ncol(carboplatinData.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+carboplatin.lda.fit.5 = train(f.carboplatin.5, 
+                          data=carboplatinData.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+carboplatin.lda.fit.5
+summary(carboplatin.lda.fit.5)
+
+# Predict using the training set again
+pred.carboplatin.5 = predict(carboplatin.lda.fit.5, carboplatinData.5)
+pred.table.5<-table(pred.carboplatin.5, carboplatinData.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="carboplatin" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 12.carboplatinModel.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+carboplatinData.1 <- as.data.frame(cbind(truth_set$carboplatin, top1FeatureSet))
+names(carboplatinData.1)[1] <- "outcome"
+carboplatinData.1 <- clean_names(carboplatinData.1)
+carboplatinData.1 <- binarizeOutcomeFxn(carboplatinData.1)
+
+# Formula for the predictive model
+f.carboplatin.1 = as.formula(paste(names(carboplatinData.1)[1]," ~ ", paste(names(carboplatinData.1)[2:ncol(carboplatinData.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+carboplatin.lda.fit.1 = train(f.carboplatin.1, 
+                          data=carboplatinData.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+carboplatin.lda.fit.1
+summary(carboplatin.lda.fit.1)
+
+# Predict using the training set again
+pred.carboplatin.1 = predict(carboplatin.lda.fit.1, carboplatinData.1)
+pred.table.1<-table(pred.carboplatin.1, carboplatinData.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="carboplatin" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 3 - CISPLATIN DRUG
+
+```{r 13.cisplatinModel.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cisplatinData.10 <- as.data.frame(cbind(truth_set$cisplatin, top10FeatureSet))
+names(cisplatinData.10)[1] <- "outcome"
+cisplatinData.10 <- clean_names(cisplatinData.10)
+cisplatinData.10 <- binarizeOutcomeFxn(cisplatinData.10)
+
+# Formula for the predictive model
+f.cisplatin.10 = as.formula(paste(names(cisplatinData.10)[1]," ~ ", paste(names(cisplatinData.10)[2:ncol(cisplatinData.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cisplatin.lda.fit.10 = train(f.cisplatin.10, 
+                          data=cisplatinData.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+cisplatin.lda.fit.10
+summary(cisplatin.lda.fit.10)
+
+# Predict using the training set again
+pred.cisplatin.10 = predict(cisplatin.lda.fit.10, cisplatinData.10)
+pred.table.10<-table(pred.cisplatin.10, cisplatinData.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="cisplatin" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 14.cisplatinModel.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cisplatinData.5 <- as.data.frame(cbind(truth_set$cisplatin, top5FeatureSet))
+names(cisplatinData.5)[1] <- "outcome"
+cisplatinData.5 <- clean_names(cisplatinData.5)
+cisplatinData.5 <- binarizeOutcomeFxn(cisplatinData.5)
+
+# Formula for the predictive model
+f.cisplatin.5 = as.formula(paste(names(cisplatinData.5)[1]," ~ ", paste(names(cisplatinData.5)[2:ncol(cisplatinData.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cisplatin.lda.fit.5 = train(f.cisplatin.5, 
+                          data=cisplatinData.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+cisplatin.lda.fit.5
+summary(cisplatin.lda.fit.5)
+
+# Predict using the training set again
+pred.cisplatin.5 = predict(cisplatin.lda.fit.5, cisplatinData.5)
+pred.table.5<-table(pred.cisplatin.5, cisplatinData.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="cisplatin" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 15.cisplatinModel.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+cisplatinData.1 <- as.data.frame(cbind(truth_set$cisplatin, top1FeatureSet))
+names(cisplatinData.1)[1] <- "outcome"
+cisplatinData.1 <- clean_names(cisplatinData.1)
+cisplatinData.1 <- binarizeOutcomeFxn(cisplatinData.1)
+
+# Formula for the predictive model
+f.cisplatin.1 = as.formula(paste(names(cisplatinData.1)[1]," ~ ", paste(names(cisplatinData.1)[2:ncol(cisplatinData.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+cisplatin.lda.fit.1 = train(f.cisplatin.1, 
+                          data=cisplatinData.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+cisplatin.lda.fit.1
+summary(cisplatin.lda.fit.1)
+
+# Predict using the training set again
+pred.cisplatin.1 = predict(cisplatin.lda.fit.1, cisplatinData.1)
+pred.table.1<-table(pred.cisplatin.1, cisplatinData.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="cisplatin" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 4 - GSK1070916 DRUG
+
+```{r 16.gsk1070916Model.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1070916Data.10 <- as.data.frame(cbind(truth_set$gsk1070916, top10FeatureSet))
+names(gsk1070916Data.10)[1] <- "outcome"
+gsk1070916Data.10 <- clean_names(gsk1070916Data.10)
+gsk1070916Data.10 <- binarizeOutcomeFxn(gsk1070916Data.10)
+
+# Formula for the predictive model
+f.gsk1070916.10 = as.formula(paste(names(gsk1070916Data.10)[1]," ~ ", paste(names(gsk1070916Data.10)[2:ncol(gsk1070916Data.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1070916.lda.fit.10 = train(f.gsk1070916.10, 
+                          data=gsk1070916Data.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+gsk1070916.lda.fit.10
+summary(gsk1070916.lda.fit.10)
+
+# Predict using the training set again
+pred.gsk1070916.10 = predict(gsk1070916.lda.fit.10, gsk1070916Data.10)
+pred.table.10<-table(pred.gsk1070916.10, gsk1070916Data.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="gsk1070916" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 17.gsk1070916Model.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1070916Data.5 <- as.data.frame(cbind(truth_set$gsk1070916, top5FeatureSet))
+names(gsk1070916Data.5)[1] <- "outcome"
+gsk1070916Data.5 <- clean_names(gsk1070916Data.5)
+gsk1070916Data.5 <- binarizeOutcomeFxn(gsk1070916Data.5)
+
+# Formula for the predictive model
+f.gsk1070916.5 = as.formula(paste(names(gsk1070916Data.5)[1]," ~ ", paste(names(gsk1070916Data.5)[2:ncol(gsk1070916Data.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1070916.lda.fit.5 = train(f.gsk1070916.5, 
+                          data=gsk1070916Data.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+gsk1070916.lda.fit.5
+summary(gsk1070916.lda.fit.5)
+
+# Predict using the training set again
+pred.gsk1070916.5 = predict(gsk1070916.lda.fit.5, gsk1070916Data.5)
+pred.table.5<-table(pred.gsk1070916.5, gsk1070916Data.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="gsk1070916" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 18.gsk1070916Model.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1070916Data.1 <- as.data.frame(cbind(truth_set$gsk1070916, top1FeatureSet))
+names(gsk1070916Data.1)[1] <- "outcome"
+gsk1070916Data.1 <- clean_names(gsk1070916Data.1)
+gsk1070916Data.1 <- binarizeOutcomeFxn(gsk1070916Data.1)
+
+# Formula for the predictive model
+f.gsk1070916.1 = as.formula(paste(names(gsk1070916Data.1)[1]," ~ ", paste(names(gsk1070916Data.1)[2:ncol(gsk1070916Data.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1070916.lda.fit.1 = train(f.gsk1070916.1, 
+                          data=gsk1070916Data.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+gsk1070916.lda.fit.1
+summary(gsk1070916.lda.fit.1)
+
+# Predict using the training set again
+pred.gsk1070916.1 = predict(gsk1070916.lda.fit.1, gsk1070916Data.1)
+pred.table.1<-table(pred.gsk1070916.1, gsk1070916Data.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="gsk1070916" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 5 - GSK1120212 DRUG
+
+```{r 19.gsk1120212Model.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1120212Data.10 <- as.data.frame(cbind(truth_set$gsk1120212, top10FeatureSet))
+names(gsk1120212Data.10)[1] <- "outcome"
+gsk1120212Data.10 <- clean_names(gsk1120212Data.10)
+gsk1120212Data.10 <- binarizeOutcomeFxn(gsk1120212Data.10)
+
+# Formula for the predictive model
+f.gsk1120212.10 = as.formula(paste(names(gsk1120212Data.10)[1]," ~ ", paste(names(gsk1120212Data.10)[2:ncol(gsk1120212Data.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1120212.lda.fit.10 = train(f.gsk1120212.10, 
+                          data=gsk1120212Data.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+gsk1120212.lda.fit.10
+summary(gsk1120212.lda.fit.10)
+
+# Predict using the training set again
+pred.gsk1120212.10 = predict(gsk1120212.lda.fit.10, gsk1120212Data.10)
+pred.table.10<-table(pred.gsk1120212.10, gsk1120212Data.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="gsk1120212" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 20.gsk1120212Model.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1120212Data.5 <- as.data.frame(cbind(truth_set$gsk1120212, top5FeatureSet))
+names(gsk1120212Data.5)[1] <- "outcome"
+gsk1120212Data.5 <- clean_names(gsk1120212Data.5)
+gsk1120212Data.5 <- binarizeOutcomeFxn(gsk1120212Data.5)
+
+# Formula for the predictive model
+f.gsk1120212.5 = as.formula(paste(names(gsk1120212Data.5)[1]," ~ ", paste(names(gsk1120212Data.5)[2:ncol(gsk1120212Data.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1120212.lda.fit.5 = train(f.gsk1120212.5, 
+                          data=gsk1120212Data.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+gsk1120212.lda.fit.5
+summary(gsk1120212.lda.fit.5)
+
+# Predict using the training set again
+pred.gsk1120212.5 = predict(gsk1120212.lda.fit.5, gsk1120212Data.5)
+pred.table.5<-table(pred.gsk1120212.5, gsk1120212Data.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="gsk1120212" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 21.gsk1120212Model.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk1120212Data.1 <- as.data.frame(cbind(truth_set$gsk1120212, top1FeatureSet))
+names(gsk1120212Data.1)[1] <- "outcome"
+gsk1120212Data.1 <- clean_names(gsk1120212Data.1)
+gsk1120212Data.1 <- binarizeOutcomeFxn(gsk1120212Data.1)
+
+# Formula for the predictive model
+f.gsk1120212.1 = as.formula(paste(names(gsk1120212Data.1)[1]," ~ ", paste(names(gsk1120212Data.1)[2:ncol(gsk1120212Data.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk1120212.lda.fit.1 = train(f.gsk1120212.1, 
+                          data=gsk1120212Data.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+gsk1120212.lda.fit.1
+summary(gsk1120212.lda.fit.1)
+
+# Predict using the training set again
+pred.gsk1120212.1 = predict(gsk1120212.lda.fit.1, gsk1120212Data.1)
+pred.table.1<-table(pred.gsk1120212.1, gsk1120212Data.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="gsk1120212" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 6 - GSK461364 DRUG
+
+```{r 22.gsk461364Model.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk461364Data.10 <- as.data.frame(cbind(truth_set$gsk461364, top10FeatureSet))
+names(gsk461364Data.10)[1] <- "outcome"
+gsk461364Data.10 <- clean_names(gsk461364Data.10)
+gsk461364Data.10 <- binarizeOutcomeFxn(gsk461364Data.10)
+
+# Formula for the predictive model
+f.gsk461364.10 = as.formula(paste(names(gsk461364Data.10)[1]," ~ ", paste(names(gsk461364Data.10)[2:ncol(gsk461364Data.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk461364.lda.fit.10 = train(f.gsk461364.10, 
+                          data=gsk461364Data.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+gsk461364.lda.fit.10
+summary(gsk461364.lda.fit.10)
+
+# Predict using the training set again
+pred.gsk461364.10 = predict(gsk461364.lda.fit.10, gsk461364Data.10)
+pred.table.10<-table(pred.gsk461364.10, gsk461364Data.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="gsk461364" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 23.gsk461364Model.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk461364Data.5 <- as.data.frame(cbind(truth_set$gsk461364, top5FeatureSet))
+names(gsk461364Data.5)[1] <- "outcome"
+gsk461364Data.5 <- clean_names(gsk461364Data.5)
+gsk461364Data.5 <- binarizeOutcomeFxn(gsk461364Data.5)
+
+# Formula for the predictive model
+f.gsk461364.5 = as.formula(paste(names(gsk461364Data.5)[1]," ~ ", paste(names(gsk461364Data.5)[2:ncol(gsk461364Data.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk461364.lda.fit.5 = train(f.gsk461364.5, 
+                          data=gsk461364Data.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+gsk461364.lda.fit.5
+summary(gsk461364.lda.fit.5)
+
+# Predict using the training set again
+pred.gsk461364.5 = predict(gsk461364.lda.fit.5, gsk461364Data.5)
+pred.table.5<-table(pred.gsk461364.5, gsk461364Data.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="gsk461364" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 24.gsk461364Model.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+gsk461364Data.1 <- as.data.frame(cbind(truth_set$gsk461364, top1FeatureSet))
+names(gsk461364Data.1)[1] <- "outcome"
+gsk461364Data.1 <- clean_names(gsk461364Data.1)
+gsk461364Data.1 <- binarizeOutcomeFxn(gsk461364Data.1)
+
+# Formula for the predictive model
+f.gsk461364.1 = as.formula(paste(names(gsk461364Data.1)[1]," ~ ", paste(names(gsk461364Data.1)[2:ncol(gsk461364Data.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+gsk461364.lda.fit.1 = train(f.gsk461364.1, 
+                          data=gsk461364Data.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+gsk461364.lda.fit.1
+summary(gsk461364.lda.fit.1)
+
+# Predict using the training set again
+pred.gsk461364.1 = predict(gsk461364.lda.fit.1, gsk461364Data.1)
+pred.table.1<-table(pred.gsk461364.1, gsk461364Data.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="gsk461364" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 7 - GELDANAMYCIN DRUG
+
+```{r 25.geldanamycinModel.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+geldanamycinData.10 <- as.data.frame(cbind(truth_set$geldanamycin, top10FeatureSet))
+names(geldanamycinData.10)[1] <- "outcome"
+geldanamycinData.10 <- clean_names(geldanamycinData.10)
+geldanamycinData.10 <- binarizeOutcomeFxn(geldanamycinData.10)
+
+# Formula for the predictive model
+f.geldanamycin.10 = as.formula(paste(names(geldanamycinData.10)[1]," ~ ", paste(names(geldanamycinData.10)[2:ncol(geldanamycinData.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+geldanamycin.lda.fit.10 = train(f.geldanamycin.10, 
+                          data=geldanamycinData.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+geldanamycin.lda.fit.10
+summary(geldanamycin.lda.fit.10)
+
+# Predict using the training set again
+pred.geldanamycin.10 = predict(geldanamycin.lda.fit.10, geldanamycinData.10)
+pred.table.10<-table(pred.geldanamycin.10, geldanamycinData.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="geldanamycin" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 26.geldanamycinModel.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+geldanamycinData.5 <- as.data.frame(cbind(truth_set$geldanamycin, top5FeatureSet))
+names(geldanamycinData.5)[1] <- "outcome"
+geldanamycinData.5 <- clean_names(geldanamycinData.5)
+geldanamycinData.5 <- binarizeOutcomeFxn(geldanamycinData.5)
+
+# Formula for the predictive model
+f.geldanamycin.5 = as.formula(paste(names(geldanamycinData.5)[1]," ~ ", paste(names(geldanamycinData.5)[2:ncol(geldanamycinData.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+geldanamycin.lda.fit.5 = train(f.geldanamycin.5, 
+                          data=geldanamycinData.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+geldanamycin.lda.fit.5
+summary(geldanamycin.lda.fit.5)
+
+# Predict using the training set again
+pred.geldanamycin.5 = predict(geldanamycin.lda.fit.5, geldanamycinData.5)
+pred.table.5<-table(pred.geldanamycin.5, geldanamycinData.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="geldanamycin" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 27.geldanamycinModel.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+geldanamycinData.1 <- as.data.frame(cbind(truth_set$geldanamycin, top1FeatureSet))
+names(geldanamycinData.1)[1] <- "outcome"
+geldanamycinData.1 <- clean_names(geldanamycinData.1)
+geldanamycinData.1 <- binarizeOutcomeFxn(geldanamycinData.1)
+
+# Formula for the predictive model
+f.geldanamycin.1 = as.formula(paste(names(geldanamycinData.1)[1]," ~ ", paste(names(geldanamycinData.1)[2:ncol(geldanamycinData.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+geldanamycin.lda.fit.1 = train(f.geldanamycin.1, 
+                          data=geldanamycinData.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+geldanamycin.lda.fit.1
+summary(geldanamycin.lda.fit.1)
+
+# Predict using the training set again
+pred.geldanamycin.1 = predict(geldanamycin.lda.fit.1, geldanamycinData.1)
+pred.table.1<-table(pred.geldanamycin.1, geldanamycinData.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="geldanamycin" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 8 - OXALIPLATIN DRUG
+
+```{r 28.oxaliplatinModel.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+oxaliplatinData.10 <- as.data.frame(cbind(truth_set$oxaliplatin, top10FeatureSet))
+names(oxaliplatinData.10)[1] <- "outcome"
+oxaliplatinData.10 <- clean_names(oxaliplatinData.10)
+oxaliplatinData.10 <- binarizeOutcomeFxn(oxaliplatinData.10)
+
+# Formula for the predictive model
+f.oxaliplatin.10 = as.formula(paste(names(oxaliplatinData.10)[1]," ~ ", paste(names(oxaliplatinData.10)[2:ncol(oxaliplatinData.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+oxaliplatin.lda.fit.10 = train(f.oxaliplatin.10, 
+                          data=oxaliplatinData.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+oxaliplatin.lda.fit.10
+summary(oxaliplatin.lda.fit.10)
+
+# Predict using the training set again
+pred.oxaliplatin.10 = predict(oxaliplatin.lda.fit.10, oxaliplatinData.10)
+pred.table.10<-table(pred.oxaliplatin.10, oxaliplatinData.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="oxaliplatin" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 29.oxaliplatinModel.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+oxaliplatinData.5 <- as.data.frame(cbind(truth_set$oxaliplatin, top5FeatureSet))
+names(oxaliplatinData.5)[1] <- "outcome"
+oxaliplatinData.5 <- clean_names(oxaliplatinData.5)
+oxaliplatinData.5 <- binarizeOutcomeFxn(oxaliplatinData.5)
+
+# Formula for the predictive model
+f.oxaliplatin.5 = as.formula(paste(names(oxaliplatinData.5)[1]," ~ ", paste(names(oxaliplatinData.5)[2:ncol(oxaliplatinData.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+oxaliplatin.lda.fit.5 = train(f.oxaliplatin.5, 
+                          data=oxaliplatinData.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+oxaliplatin.lda.fit.5
+summary(oxaliplatin.lda.fit.5)
+
+# Predict using the training set again
+pred.oxaliplatin.5 = predict(oxaliplatin.lda.fit.5, oxaliplatinData.5)
+pred.table.5<-table(pred.oxaliplatin.5, oxaliplatinData.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="oxaliplatin" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 30.oxaliplatinModel.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+oxaliplatinData.1 <- as.data.frame(cbind(truth_set$oxaliplatin, top1FeatureSet))
+names(oxaliplatinData.1)[1] <- "outcome"
+oxaliplatinData.1 <- clean_names(oxaliplatinData.1)
+oxaliplatinData.1 <- binarizeOutcomeFxn(oxaliplatinData.1)
+
+# Formula for the predictive model
+f.oxaliplatin.1 = as.formula(paste(names(oxaliplatinData.1)[1]," ~ ", paste(names(oxaliplatinData.1)[2:ncol(oxaliplatinData.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+oxaliplatin.lda.fit.1 = train(f.oxaliplatin.1, 
+                          data=oxaliplatinData.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+oxaliplatin.lda.fit.1
+summary(oxaliplatin.lda.fit.1)
+
+# Predict using the training set again
+pred.oxaliplatin.1 = predict(oxaliplatin.lda.fit.1, oxaliplatinData.1)
+pred.table.1<-table(pred.oxaliplatin.1, oxaliplatinData.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="oxaliplatin" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 9 - PF.3084014 DRUG
+
+```{r 31.pf_3084014Model.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3084014Data.10 <- as.data.frame(cbind(truth_set$pf_3084014, top10FeatureSet))
+names(pf_3084014Data.10)[1] <- "outcome"
+pf_3084014Data.10 <- clean_names(pf_3084014Data.10)
+pf_3084014Data.10 <- binarizeOutcomeFxn(pf_3084014Data.10)
+
+# Formula for the predictive model
+f.pf_3084014.10 = as.formula(paste(names(pf_3084014Data.10)[1]," ~ ", paste(names(pf_3084014Data.10)[2:ncol(pf_3084014Data.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3084014.lda.fit.10 = train(f.pf_3084014.10, 
+                          data=pf_3084014Data.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+pf_3084014.lda.fit.10
+summary(pf_3084014.lda.fit.10)
+
+# Predict using the training set again
+pred.pf_3084014.10 = predict(pf_3084014.lda.fit.10, pf_3084014Data.10)
+pred.table.10<-table(pred.pf_3084014.10, pf_3084014Data.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="pf_3084014" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 32.pf_3084014Model.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3084014Data.5 <- as.data.frame(cbind(truth_set$pf_3084014, top5FeatureSet))
+names(pf_3084014Data.5)[1] <- "outcome"
+pf_3084014Data.5 <- clean_names(pf_3084014Data.5)
+pf_3084014Data.5 <- binarizeOutcomeFxn(pf_3084014Data.5)
+
+# Formula for the predictive model
+f.pf_3084014.5 = as.formula(paste(names(pf_3084014Data.5)[1]," ~ ", paste(names(pf_3084014Data.5)[2:ncol(pf_3084014Data.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3084014.lda.fit.5 = train(f.pf_3084014.5, 
+                          data=pf_3084014Data.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+pf_3084014.lda.fit.5
+summary(pf_3084014.lda.fit.5)
+
+# Predict using the training set again
+pred.pf_3084014.5 = predict(pf_3084014.lda.fit.5, pf_3084014Data.5)
+pred.table.5<-table(pred.pf_3084014.5, pf_3084014Data.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="pf_3084014" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 33.pf_3084014Model.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3084014Data.1 <- as.data.frame(cbind(truth_set$pf_3084014, top1FeatureSet))
+names(pf_3084014Data.1)[1] <- "outcome"
+pf_3084014Data.1 <- clean_names(pf_3084014Data.1)
+pf_3084014Data.1 <- binarizeOutcomeFxn(pf_3084014Data.1)
+
+# Formula for the predictive model
+f.pf_3084014.1 = as.formula(paste(names(pf_3084014Data.1)[1]," ~ ", paste(names(pf_3084014Data.1)[2:ncol(pf_3084014Data.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3084014.lda.fit.1 = train(f.pf_3084014.1, 
+                          data=pf_3084014Data.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+pf_3084014.lda.fit.1
+summary(pf_3084014.lda.fit.1)
+
+# Predict using the training set again
+pred.pf_3084014.1 = predict(pf_3084014.lda.fit.1, pf_3084014Data.1)
+pred.table.1<-table(pred.pf_3084014.1, pf_3084014Data.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="pf_3084014" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 10 - PF.3814735 DRUG
+
+```{r 34.pf_3814735Model.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3814735Data.10 <- as.data.frame(cbind(truth_set$pf_3814735, top10FeatureSet))
+names(pf_3814735Data.10)[1] <- "outcome"
+pf_3814735Data.10 <- clean_names(pf_3814735Data.10)
+pf_3814735Data.10 <- binarizeOutcomeFxn(pf_3814735Data.10)
+
+# Formula for the predictive model
+f.pf_3814735.10 = as.formula(paste(names(pf_3814735Data.10)[1]," ~ ", paste(names(pf_3814735Data.10)[2:ncol(pf_3814735Data.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3814735.lda.fit.10 = train(f.pf_3814735.10, 
+                          data=pf_3814735Data.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+pf_3814735.lda.fit.10
+summary(pf_3814735.lda.fit.10)
+
+# Predict using the training set again
+pred.pf_3814735.10 = predict(pf_3814735.lda.fit.10, pf_3814735Data.10)
+pred.table.10<-table(pred.pf_3814735.10, pf_3814735Data.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="pf_3814735" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 35.pf_3814735Model.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3814735Data.5 <- as.data.frame(cbind(truth_set$pf_3814735, top5FeatureSet))
+names(pf_3814735Data.5)[1] <- "outcome"
+pf_3814735Data.5 <- clean_names(pf_3814735Data.5)
+pf_3814735Data.5 <- binarizeOutcomeFxn(pf_3814735Data.5)
+
+# Formula for the predictive model
+f.pf_3814735.5 = as.formula(paste(names(pf_3814735Data.5)[1]," ~ ", paste(names(pf_3814735Data.5)[2:ncol(pf_3814735Data.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3814735.lda.fit.5 = train(f.pf_3814735.5, 
+                          data=pf_3814735Data.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+pf_3814735.lda.fit.5
+summary(pf_3814735.lda.fit.5)
+
+# Predict using the training set again
+pred.pf_3814735.5 = predict(pf_3814735.lda.fit.5, pf_3814735Data.5)
+pred.table.5<-table(pred.pf_3814735.5, pf_3814735Data.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="pf_3814735" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 36.pf_3814735Model.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_3814735Data.1 <- as.data.frame(cbind(truth_set$pf_3814735, top1FeatureSet))
+names(pf_3814735Data.1)[1] <- "outcome"
+pf_3814735Data.1 <- clean_names(pf_3814735Data.1)
+pf_3814735Data.1 <- binarizeOutcomeFxn(pf_3814735Data.1)
+
+# Formula for the predictive model
+f.pf_3814735.1 = as.formula(paste(names(pf_3814735Data.1)[1]," ~ ", paste(names(pf_3814735Data.1)[2:ncol(pf_3814735Data.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_3814735.lda.fit.1 = train(f.pf_3814735.1, 
+                          data=pf_3814735Data.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+pf_3814735.lda.fit.1
+summary(pf_3814735.lda.fit.1)
+
+# Predict using the training set again
+pred.pf_3814735.1 = predict(pf_3814735.lda.fit.1, pf_3814735Data.1)
+pred.table.1<-table(pred.pf_3814735.1, pf_3814735Data.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="pf_3814735" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 11 - PF.4691502 DRUG
+
+```{r 37.pf_4691502Model.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_4691502Data.10 <- as.data.frame(cbind(truth_set$pf_4691502, top10FeatureSet))
+names(pf_4691502Data.10)[1] <- "outcome"
+pf_4691502Data.10 <- clean_names(pf_4691502Data.10)
+pf_4691502Data.10 <- binarizeOutcomeFxn(pf_4691502Data.10)
+
+# Formula for the predictive model
+f.pf_4691502.10 = as.formula(paste(names(pf_4691502Data.10)[1]," ~ ", paste(names(pf_4691502Data.10)[2:ncol(pf_4691502Data.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_4691502.lda.fit.10 = train(f.pf_4691502.10, 
+                          data=pf_4691502Data.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+pf_4691502.lda.fit.10
+summary(pf_4691502.lda.fit.10)
+
+# Predict using the training set again
+pred.pf_4691502.10 = predict(pf_4691502.lda.fit.10, pf_4691502Data.10)
+pred.table.10<-table(pred.pf_4691502.10, pf_4691502Data.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="pf_4691502" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 38.pf_4691502Model.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_4691502Data.5 <- as.data.frame(cbind(truth_set$pf_4691502, top5FeatureSet))
+names(pf_4691502Data.5)[1] <- "outcome"
+pf_4691502Data.5 <- clean_names(pf_4691502Data.5)
+pf_4691502Data.5 <- binarizeOutcomeFxn(pf_4691502Data.5)
+
+# Formula for the predictive model
+f.pf_4691502.5 = as.formula(paste(names(pf_4691502Data.5)[1]," ~ ", paste(names(pf_4691502Data.5)[2:ncol(pf_4691502Data.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_4691502.lda.fit.5 = train(f.pf_4691502.5, 
+                          data=pf_4691502Data.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+pf_4691502.lda.fit.5
+summary(pf_4691502.lda.fit.5)
+
+# Predict using the training set again
+pred.pf_4691502.5 = predict(pf_4691502.lda.fit.5, pf_4691502Data.5)
+pred.table.5<-table(pred.pf_4691502.5, pf_4691502Data.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="pf_4691502" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 39.pf_4691502Model.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+pf_4691502Data.1 <- as.data.frame(cbind(truth_set$pf_4691502, top1FeatureSet))
+names(pf_4691502Data.1)[1] <- "outcome"
+pf_4691502Data.1 <- clean_names(pf_4691502Data.1)
+pf_4691502Data.1 <- binarizeOutcomeFxn(pf_4691502Data.1)
+
+# Formula for the predictive model
+f.pf_4691502.1 = as.formula(paste(names(pf_4691502Data.1)[1]," ~ ", paste(names(pf_4691502Data.1)[2:ncol(pf_4691502Data.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+pf_4691502.lda.fit.1 = train(f.pf_4691502.1, 
+                          data=pf_4691502Data.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+pf_4691502.lda.fit.1
+summary(pf_4691502.lda.fit.1)
+
+# Predict using the training set again
+pred.pf_4691502.1 = predict(pf_4691502.lda.fit.1, pf_4691502Data.1)
+pred.table.1<-table(pred.pf_4691502.1, pf_4691502Data.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="pf_4691502" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+# MODEL 12 - PACLITAXEL DRUG
+
+```{r 40.paclitaxelModel.10, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+paclitaxelData.10 <- as.data.frame(cbind(truth_set$paclitaxel, top10FeatureSet))
+names(paclitaxelData.10)[1] <- "outcome"
+paclitaxelData.10 <- clean_names(paclitaxelData.10)
+paclitaxelData.10 <- binarizeOutcomeFxn(paclitaxelData.10)
+
+# Formula for the predictive model
+f.paclitaxel.10 = as.formula(paste(names(paclitaxelData.10)[1]," ~ ", paste(names(paclitaxelData.10)[2:ncol(paclitaxelData.10)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+paclitaxel.lda.fit.10 = train(f.paclitaxel.10, 
+                          data=paclitaxelData.10, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+paclitaxel.lda.fit.10
+summary(paclitaxel.lda.fit.10)
+
+# Predict using the training set again
+pred.paclitaxel.10 = predict(paclitaxel.lda.fit.10, paclitaxelData.10)
+pred.table.10<-table(pred.paclitaxel.10, paclitaxelData.10$outcome)
+pred.table.10
+acc <- (pred.table.10[1,1]+pred.table.10[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="paclitaxel" & results[,2]=="10"))
+results[ind, 3] <- acc
+```
+
+```{r 41.paclitaxelModel.5, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+paclitaxelData.5 <- as.data.frame(cbind(truth_set$paclitaxel, top5FeatureSet))
+names(paclitaxelData.5)[1] <- "outcome"
+paclitaxelData.5 <- clean_names(paclitaxelData.5)
+paclitaxelData.5 <- binarizeOutcomeFxn(paclitaxelData.5)
+
+# Formula for the predictive model
+f.paclitaxel.5 = as.formula(paste(names(paclitaxelData.5)[1]," ~ ", paste(names(paclitaxelData.5)[2:ncol(paclitaxelData.5)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+paclitaxel.lda.fit.5 = train(f.paclitaxel.5, 
+                          data=paclitaxelData.5, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+paclitaxel.lda.fit.5
+summary(paclitaxel.lda.fit.5)
+
+# Predict using the training set again
+pred.paclitaxel.5 = predict(paclitaxel.lda.fit.5, paclitaxelData.5)
+pred.table.5<-table(pred.paclitaxel.5, paclitaxelData.5$outcome)
+pred.table.5
+acc <- (pred.table.5[1,1]+pred.table.5[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="paclitaxel" & results[,2]=="5"))
+results[ind, 3] <- acc
+```
+
+```{r 42.paclitaxelModel.1, warning=FALSE}
+# Bind the outcome to the feature set
+# Clean the column names
+# Bimarize the outcome values
+paclitaxelData.1 <- as.data.frame(cbind(truth_set$paclitaxel, top1FeatureSet))
+names(paclitaxelData.1)[1] <- "outcome"
+paclitaxelData.1 <- clean_names(paclitaxelData.1)
+paclitaxelData.1 <- binarizeOutcomeFxn(paclitaxelData.1)
+
+# Formula for the predictive model
+f.paclitaxel.1 = as.formula(paste(names(paclitaxelData.1)[1]," ~ ", paste(names(paclitaxelData.1)[2:ncol(paclitaxelData.1)], collapse= "+")))
+
+# Train the model with 10 fold cross validation with 10x repeated sampling using an LDA model
+paclitaxel.lda.fit.1 = train(f.paclitaxel.1, 
+                          data=paclitaxelData.1, 
+                          method="lda",
+                          trControl = trainControl(method = "repeatedcv", repeats=10))
+# Print the model
+paclitaxel.lda.fit.1
+summary(paclitaxel.lda.fit.1)
+
+# Predict using the training set again
+pred.paclitaxel.1 = predict(paclitaxel.lda.fit.1, paclitaxelData.1)
+pred.table.1<-table(pred.paclitaxel.1, paclitaxelData.1$outcome)
+pred.table.1
+acc <- (pred.table.1[1,1]+pred.table.1[2,2])/25
+paste("accuracy:", acc, "%")
+
+ind <- which((results[,1]=="paclitaxel" & results[,2]=="1"))
+results[ind, 3] <- acc
+```
+
+<br>
+
+```{r}
+results
+```
+
+# TEST SET
+
+```{r}
+### Reading in the data:
+test_expr <- as.data.frame(t(read.table("../data/clean_test_expression.txt", row.names=1)))
+# Read in the subtype data
+test_subs <- read_tsv("../data/clean_test_subtypes.txt")
+
+testFt <- cbind(test_subs[,2], (test_expr))
+testFt.1 <- testFt[,top1]
+
+testFt.1 <- clean_names(testFt.1)
+
+testProbMap <- read_csv("../data/rand_sub_cont.csv")
+
+testProb <- (read_csv("../data/scoring_and_test_set_id_mappings.csv", col_names=TRUE))
+testProb[ , 'modProb'] <- NA
+```
+
+```{r}
+colnames(testFt.1)
+```
+##1
+```{r cgc11047Test}
+cgc11047.t1 <- predict(cgc11047.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(cgc11047.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="CGC-11047"))
+  testProb[ind, 5] <- cgc11047.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="CGC-11047"))
+  testProb[ind, 5] <- cgc11047.t1[i,2]
+  }
+}
+
+```
+
+##2
+```{r carboplatinTest}
+carboplatin.t1 <- predict(carboplatin.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(carboplatin.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="Carboplatin"))
+  testProb[ind, 5] <- carboplatin.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="Carboplatin"))
+  testProb[ind, 5] <- carboplatin.t1[i,2]
+  }
+}
+```
+
+##3
+```{r cisplatinTest}
+cisplatin.t1 <- predict(cisplatin.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(cisplatin.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="Cisplatin"))
+  testProb[ind, 5] <- cisplatin.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="Cisplatin"))
+  testProb[ind, 5] <- cisplatin.t1[i,2]
+  }
+}
+```
+
+##4
+```{r}
+gsk1070916.t1 <- predict(gsk1070916.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(gsk1070916.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="GSK1070916"))
+  testProb[ind, 5] <- gsk1070916.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="GSK1070916"))
+  testProb[ind, 5] <- gsk1070916.t1[i,2]
+  }
+}
+```
+
+##5
+```{r gsk1120212Test}
+gsk1120212.t1 <- predict(gsk1120212.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(gsk1120212.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="GSK1120212"))
+  testProb[ind, 5] <- gsk1120212.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="GSK1120212"))
+  testProb[ind, 5] <- gsk1120212.t1[i,2]
+  }
+}
+```
+
+##6
+```{r gsk461364Test}
+gsk461364.t1 <- predict(gsk461364.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(gsk461364.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="GSK461364"))
+  testProb[ind, 5] <- gsk461364.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="GSK461364"))
+  testProb[ind, 5] <- gsk461364.t1[i,2]
+  }
+}
+```
+
+##7
+```{r geldanamycinTest}
+geldanamycin.t1 <- predict(geldanamycin.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(geldanamycin.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="Geldanamycin"))
+  testProb[ind, 5] <- geldanamycin.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="Geldanamycin"))
+  testProb[ind, 5] <- geldanamycin.t1[i,2]
+  }
+}
+```
+
+
+##8
+```{r oxaliplatinTest}
+oxaliplatin.t1 <- predict(oxaliplatin.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(oxaliplatin.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="Oxaliplatin"))
+  testProb[ind, 5] <- oxaliplatin.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="Oxaliplatin"))
+  testProb[ind, 5] <- oxaliplatin.t1[i,2]
+  }
+}
+```
+
+##9
+```{r pf_3084014Test}
+pf_3084014.t1 <- predict(pf_3084014.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(pf_3084014.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="PF-3084014"))
+  testProb[ind, 5] <- pf_3084014.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="PF-3084014"))
+  testProb[ind, 5] <- pf_3084014.t1[i,2]
+  }
+}
+```
+
+##10
+```{r pf_3814735Test}
+pf_3814735.t1 <- predict(pf_3814735.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(pf_3814735.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="PF-3814735"))
+  testProb[ind, 5] <- pf_3814735.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="PF-3814735"))
+  testProb[ind, 5] <- pf_3814735.t1[i,2]
+  }
+}
+```
+
+##11
+```{r pf_4691502Test}
+pf_4691502.t1 <- predict(pf_4691502.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(pf_4691502.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="PF-4691502"))
+  testProb[ind, 5] <- pf_4691502.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="PF-4691502"))
+  testProb[ind, 5] <- pf_4691502.t1[i,2]
+  }
+}
+```
+
+##12
+```{r paclitaxelTest}
+paclitaxel.t1 <- predict(paclitaxel.lda.fit.1,testFt.1, type="prob")
+cycle <- as.list(rownames(paclitaxel.t1))
+
+for (i in 1:length(cycle)){
+  if (cycle[i] == "X600MPE"){
+  ind <- which((testProb[,1]== "600MPE" & testProb[,2]=="Paclitaxel"))
+  testProb[ind, 5] <- paclitaxel.t1[i,2]
+  }
+  else{
+  ind <- which((testProb[,1]== cycle[i] & testProb[,2]=="Paclitaxel"))
+  testProb[ind, 5] <- paclitaxel.t1[i,2]
+  }
+}
+```
+
+
+```{r}
+newGuess <- cbind(testProbMap[,1],testProb[,5])
+names(newGuess)[2]<- "value"
+
+write.csv(newGuess, file = "MyData.csv")
+```
+
+
+```{r}
+results
+```
+
+
