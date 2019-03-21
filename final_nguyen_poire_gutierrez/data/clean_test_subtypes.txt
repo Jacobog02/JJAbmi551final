@@ -1,0 +1,15 @@
+cellline	subtype
+600MPE	Luminal
+AU565	Luminal
+BT549	Claudin-low
+HCC1187	Basal
+HCC1954	Basal
+HCC3153	Basal
+LY2	Luminal
+MCF10A	Normal-like
+MCF12A	Normal-like
+MCF7	Luminal
+MDAMB157	Claudin-low
+MDAMB231	Claudin-low
+MDAMB361	Luminal
+SKBR3	Luminal
