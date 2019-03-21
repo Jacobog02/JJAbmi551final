@@ -1,4 +1,4 @@
-"0","#straping the first column of the truth set to the tree"
+"0","#straping the fith column of the truth set to the tree"
 "0","tree520<-cbind(drug=truth_set[,5],root20)"
 "0","tree520<-clean_names(tree520)"
 "0","tree520$drug<-factor(tree520$drug)"

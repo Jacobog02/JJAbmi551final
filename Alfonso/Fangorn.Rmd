@@ -1,7 +1,28 @@
 ---
 title: "Fangorn"
-output: html_notebook
+output:
+  pdf_document: default
+  html_notebook: default
 ---
+The purpose of this document is to create random forest models for the data set. This task is accomplished by taking the test data as subset it into three categories based on variance. A variance threshold of 0.5 that incapsulates the top 20% most variant genes, a variance threshold of 1 that incapsulates the top 10% most variant genes, and a variance threshold of 1.5 that incapsulates the top 5% most variant genes. A secondary RMD file was created later on to test for the top 1% most variant genes. The decision was made for these thresholds after not having enough computing power to train on the entire dataset these filters were applied because it was felt that they would capture enough of the important variables present in the file to build a decent predictive model. After the training set is subset into its different category each variance level has a clean names filter applied to it to fix any lingering naming issues that may be present.  Then each of the variant files has a drug column applied to it one at a time so the first set is drug one and so on. This set of three is then run an initial time to get a baseline with the default settings of the randomforest() function including a split per tree of 3 and 500 trees. First the trees are optimized by seeing the error rate per tree and the overall out of bag rate for each model the graphing allows the user to see where the trees begin to level out. The user then manually adjusts the number of trees in the model until the graph shows a leveling out in the 3 categories.  For each variance model this is optimized, once this step is complete using the new tree count a loop is run where each model is created 20 times with varying splits from 1-20. From this the error rates for each model is displayed and the one with the lowest is chosen as the split number for the model. This new split number and tree number are then fed back into the randomforest() function and the final model is created for that drug/variance level combination. This step is reproduced 12 times once for each drug resulting in the creation of 36 over all models. From these models the model with the lowest out of bag error rate was chosen to move on to the next step. 
+
+Note as the code can be slightly confusing due to its size a key is provided:
+oldForest=5% variance model any number after this name is indicative of the drug used in combination with the model
+
+mirkwood=10% variance model any number after this name is indicative of the drug used in combination with the model 
+
+fangorn=20% variance model any number after this name is indicative of the drug used in combination with the model 
+
+treex5= the five percent variance table fed to the random forest model that is a concatenation of both the test set and the drug for that section
+
+treex10= the ten percent variance table fed to the random forest model that is a concatenation of both the test set and the drug for that section
+
+treex20= the twenty percent variance table fed to the random forest model that is a concatenation of both the test set and the drug for that section
+```{r}
+sessionInfo()
+```
+
+
 ```{r}
 set.seed(25000)
 library(tidyverse)
@@ -35,6 +56,7 @@ featureSet<-cbind(subtypes[,2],t(expression))
 ```
 #variance 
 ```{r}
+#looking at the variance in the data set
 expVar <- (rowVars(expression))
 hist(expVar)
 expVar <- as.data.frame(expVar)
@@ -76,7 +98,7 @@ dim(root5)
 
 #forest 1
 ```{r drug 1 roots}
-#straping the first column of the truth set to the tree
+#straping the first column of the truth set to the tree for each percent 
 tree120<-cbind(drug=truth_set[,1],root20)
 tree120<-clean_names(tree120)
 tree120$drug<-factor(tree120$drug)
@@ -194,6 +216,7 @@ fangorn
 
 #forest 2
 ```{r drug 2 roots}
+#straping the second column of the truth set to the tree for each percent 
 tree220<-cbind(drug=truth_set[,2],root20)
 tree220<-clean_names(tree220)
 tree220$drug<-factor(tree220$drug)
@@ -303,7 +326,7 @@ fangorn2
 
 #forest drug 3
 ```{r drug 3 roots}
-#straping the first column of the truth set to the tree
+#straping the third column of the truth set to the tree
 tree320<-cbind(drug=truth_set[,3],root20)
 tree320<-clean_names(tree320)
 tree320$drug<-factor(tree320$drug)
@@ -414,7 +437,7 @@ fangorn2
 #drug 4
 
 ```{r drug 4 roots}
-#straping the first column of the truth set to the tree
+#straping the forth column of the truth set to the tree for each percent 
 tree420<-cbind(drug=truth_set[,4],root20)
 tree420<-clean_names(tree420)
 tree420$drug<-factor(tree420$drug)
@@ -524,7 +547,7 @@ fangorn4
 
 #drug 5
 ```{r drug 5 roots}
-#straping the first column of the truth set to the tree
+#straping the fith column of the truth set to the tree
 tree520<-cbind(drug=truth_set[,5],root20)
 tree520<-clean_names(tree520)
 tree520$drug<-factor(tree520$drug)
@@ -634,7 +657,7 @@ fangorn5
 
 #drug 6
 ```{r drug 6 roots}
-#straping the first column of the truth set to the tree
+#straping the sixth column of the truth set to the tree for all classes
 tree620<-cbind(drug=truth_set[,6],root20)
 tree620<-clean_names(tree620)
 tree620$drug<-factor(tree620$drug)
@@ -743,7 +766,7 @@ fangorn5
 
 #drug 7
 ```{r drug 7 roots}
-#straping the first column of the truth set to the tree
+#straping the seventh column of the truth set to the tree for all classes
 tree720<-cbind(drug=truth_set[,7],root20)
 tree720<-clean_names(tree720)
 tree720$drug<-factor(tree720$drug)
@@ -856,7 +879,7 @@ fangorn5
 
 #drug 8
 ```{r drug 8 roots}
-#straping the first column of the truth set to the tree
+#straping the eigth column of the truth set to the tree for all clases
 tree820<-cbind(drug=truth_set[,8],root20)
 tree820<-clean_names(tree820)
 tree820$drug<-factor(tree820$drug)
@@ -970,7 +993,7 @@ fangorn8
 
 #drug 9
 ```{r drug 9 roots}
-#straping the first column of the truth set to the tree
+#straping the ninth column of the truth set to the tree for all classes
 tree920<-cbind(drug=truth_set[,9],root20)
 tree920<-clean_names(tree920)
 tree920$drug<-factor(tree920$drug)
@@ -1083,7 +1106,7 @@ fangorn9
 ```
 #drug 10
 ```{r drug 10 roots}
-#straping the first column of the truth set to the tree
+#straping tenth column of the truth set to the tree for all classes
 tree1020<-cbind(drug=truth_set[,10],root20)
 tree1020<-clean_names(tree1020)
 tree1020$drug<-factor(tree1020$drug)
@@ -1198,7 +1221,7 @@ fangorn10
 
 #drug 11
 ```{r drug 11 roots}
-#straping the first column of the truth set to the tree
+#straping the 11th column of the truth set to the tree for all classes
 tree1120<-cbind(drug=truth_set[,11],root20)
 tree1120<-clean_names(tree1120)
 tree1120$drug<-factor(tree1120$drug)
@@ -1311,7 +1334,7 @@ fangorn11
 ```
 #drug 12
 ```{r drug 12 roots}
-#straping the first column of the truth set to the tree
+#straping the 12th column of the truth set to the tree for all classes
 tree1220<-cbind(drug=truth_set[,12],root20)
 tree1220<-clean_names(tree1220)
 tree1220$drug<-factor(tree1220$drug)

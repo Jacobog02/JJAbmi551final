@@ -188,6 +188,33 @@ $(document).ready(function () {
 </div>
 
 
+<p>This is the document that writes the final submission section for the kaggel competition. After the information from both the fangorn and shire files has been completed each of the models is compared to one another for each drug and the one with the lowest oob error rate is selected to be used in the final model. If a tie occurs the lowest drug variance is chosen this is because when run multiple ways it seemed as though the lower variance rates yielded better results over all. Then the predict function is run on each of the drug models and out puts a probability matrix for each of the drug cell line combinations this is saved under its drug cell line combination to a csv file named submission that is written out and used to submit to kaggel.</p>
+<p>this version is the best out put from the project using the following breakdown of variance models 1% variance models = 6</p>
+<p>5% models = 2</p>
+<p>10% models = 3</p>
+<p>20% models = 1</p>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 3.5.1 (2018-07-02)
+## Platform: x86_64-w64-mingw32/x64 (64-bit)
+## Running under: Windows 10 x64 (build 17134)
+## 
+## Matrix products: default
+## 
+## locale:
+## [1] LC_COLLATE=English_United States.1252 
+## [2] LC_CTYPE=English_United States.1252   
+## [3] LC_MONETARY=English_United States.1252
+## [4] LC_NUMERIC=C                          
+## [5] LC_TIME=English_United States.1252    
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## loaded via a namespace (and not attached):
+##  [1] compiler_3.5.1  magrittr_1.5    tools_3.5.1     htmltools_0.3.6
+##  [5] yaml_2.2.0      Rcpp_1.0.0      stringi_1.3.1   rmarkdown_1.11 
+##  [9] knitr_1.21      stringr_1.4.0   xfun_0.4        digest_0.6.18  
+## [13] evaluate_0.13</code></pre>
 <pre class="r"><code>set.seed(25000)
 library(tidyverse)</code></pre>
 <pre><code>## Warning: package 'tidyverse' was built under R version 3.5.2</code></pre>
@@ -313,6 +340,19 @@ root5 &lt;- expression[top5,]
 root5&lt;-data.frame(t(root5))
 dim(root5)</code></pre>
 <pre><code>## [1]   25 1078</code></pre>
+<pre class="r"><code>#top 1% of genes 
+#top 1 of genes
+expVar %&gt;% count((variance &gt; '3.5'))</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   `(variance &gt; &quot;3.5&quot;)`     n
+##   &lt;lgl&gt;                &lt;int&gt;
+## 1 FALSE                18431
+## 2 TRUE                   201</code></pre>
+<pre class="r"><code>top &lt;- expVar$variance &gt; 3.5
+root &lt;- expression[top,]
+root&lt;-data.frame(t(root))
+dim(root)</code></pre>
+<pre><code>## [1]  25 202</code></pre>
 <pre class="r"><code>expVar&lt;-clean_names(expVar)
 #subsetting the test set by the different varient calls
 #20%
@@ -329,76 +369,37 @@ colnames(test10)[1]&lt;-&quot;x184a1&quot;
 #5%
 top5&lt;- expVar$variance &gt; 1.5 
 test5&lt;- test[,(top5)]
-colnames(test5)[1]&lt;-&quot;x184a1&quot;</code></pre>
+colnames(test5)[1]&lt;-&quot;x184a1&quot;
+
+top &lt;- expVar$variance &gt; 3.5 
+test&lt;- test[,(top)]
+test&lt;-clean_names(test)
+colnames(test)[1]&lt;-&quot;x184a1&quot;</code></pre>
 <div id="forest-1" class="section level1">
 <h1>forest 1</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree120&lt;-cbind(drug=truth_set[,1],root20)
-tree120&lt;-clean_names(tree120)
-tree120$drug&lt;-factor(tree120$drug)
-
-
-tree110&lt;-cbind(drug=truth_set[,1],root10)
-tree110&lt;-clean_names(tree110)
-tree110$drug&lt;-factor(tree110$drug)
-
-
-tree105&lt;-cbind(drug=truth_set[,1],root5)
-tree105&lt;-clean_names(tree105)
-tree105$drug&lt;-factor(tree105$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
-#assumes that 0.48 is the lowest
-oldForest &lt;- randomForest( drug∼.,data=tree105  ,mtry=13,ntree=2000)
-oldForest</code></pre>
+<pre class="r"><code>#attaching the drug data
+tree1&lt;-cbind(drug=truth_set[,1],root)
+tree1&lt;-clean_names(tree1)
+tree1$drug&lt;-factor(tree1$drug)</code></pre>
+<pre class="r"><code>#creating the forest
+set.seed(1)
+shire &lt;- randomForest( drug∼.,data=tree1  ,mtry=2,ntree=1000)
+shire</code></pre>
 <pre><code>## 
 ## Call:
-##  randomForest(formula = drug ~ ., data = tree105, mtry = 13, ntree = 2000) 
+##  randomForest(formula = drug ~ ., data = tree1, mtry = 2, ntree = 1000) 
 ##                Type of random forest: classification
-##                      Number of trees: 2000
-## No. of variables tried at each split: 13
+##                      Number of trees: 1000
+## No. of variables tried at each split: 2
 ## 
 ##         OOB estimate of  error rate: 52%
 ## Confusion matrix:
 ##   0 1 class.error
 ## 0 5 7   0.5833333
 ## 1 6 7   0.4615385</code></pre>
-<pre class="r"><code>#assumes that 0.48 is the lowest
-mirkwood &lt;- randomForest( drug∼.,data=tree110  ,mtry=18,ntree=2000)
-mirkwood</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree110, mtry = 18, ntree = 2000) 
-##                Type of random forest: classification
-##                      Number of trees: 2000
-## No. of variables tried at each split: 18
-## 
-##         OOB estimate of  error rate: 56%
-## Confusion matrix:
-##   0 1 class.error
-## 0 4 8   0.6666667
-## 1 6 7   0.4615385</code></pre>
-<pre class="r"><code>#assumes that 0.52 is the lowest 
-fangorn &lt;- randomForest( drug∼.,data=tree120  ,mtry=5,ntree=2000)
-fangorn</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree120, mtry = 5, ntree = 2000) 
-##                Type of random forest: classification
-##                      Number of trees: 2000
-## No. of variables tried at each split: 5
-## 
-##         OOB estimate of  error rate: 60%
-## Confusion matrix:
-##   0 1 class.error
-## 0 5 7   0.5833333
-## 1 8 5   0.6153846</code></pre>
-<p><strong>entry into submission table</strong></p>
-<pre class="r"><code>#uses the 5 % variant forest because it had the lowest OOB 
-pred.of = predict(oldForest,test5,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
+<pre class="r"><code>#uses the 1% variant forest because it had the lowest OOB 
+pred.of = predict(shire,test,type='prob')
+
 
 #write into the submission file
 
@@ -446,27 +447,17 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-2" class="section level1">
 <h1>forest 2</h1>
-<pre class="r"><code>tree220&lt;-cbind(drug=truth_set[,2],root20)
-tree220&lt;-clean_names(tree220)
-tree220$drug&lt;-factor(tree220$drug)
-
-
-tree210&lt;-cbind(drug=truth_set[,2],root10)
-tree210&lt;-clean_names(tree210)
-tree210$drug&lt;-factor(tree210$drug)
-
-
-tree205&lt;-cbind(drug=truth_set[,2],root5)
-tree205&lt;-clean_names(tree205)
-tree205$drug&lt;-factor(tree205$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
-oldForest2 &lt;- randomForest( drug∼.,data=tree205  ,mtry=2,ntree=500)
-oldForest2</code></pre>
+<pre class="r"><code>#attaching the drug data
+tree2&lt;-cbind(drug=truth_set[,2],root)
+tree2&lt;-clean_names(tree2)
+tree2$drug&lt;-factor(tree2$drug)</code></pre>
+<pre class="r"><code>#forest creation
+set.seed(1)
+shire2 &lt;- randomForest( drug∼.,data=tree2  ,mtry=2,ntree=500)
+shire2</code></pre>
 <pre><code>## 
 ## Call:
-##  randomForest(formula = drug ~ ., data = tree205, mtry = 2, ntree = 500) 
+##  randomForest(formula = drug ~ ., data = tree2, mtry = 2, ntree = 500) 
 ##                Type of random forest: classification
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 2
@@ -476,38 +467,8 @@ oldForest2</code></pre>
 ##    0 1 class.error
 ## 0 11 2   0.1538462
 ## 1  3 9   0.2500000</code></pre>
-<pre class="r"><code>mirkwood2 &lt;- randomForest( drug∼.,data=tree210  ,mtry=2,ntree=500)
-mirkwood2</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree210, mtry = 2, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 2
-## 
-##         OOB estimate of  error rate: 20%
-## Confusion matrix:
-##    0 1 class.error
-## 0 11 2   0.1538462
-## 1  3 9   0.2500000</code></pre>
-<pre class="r"><code>fangorn2 &lt;- randomForest( drug∼.,data=tree220  ,mtry=2,ntree=500)
-fangorn2</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree220, mtry = 2, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 2
-## 
-##         OOB estimate of  error rate: 24%
-## Confusion matrix:
-##    0 1 class.error
-## 0 10 3   0.2307692
-## 1  3 9   0.2500000</code></pre>
-<pre class="r"><code>#uses the 20 % variant forest because it was tied for lowest oob 
-pred.of = predict(oldForest2,test5,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
+<pre class="r"><code>#uses the 1 % variant forest because it was tied for lowest oob 
+pred.of = predict(shire2,test,type='prob')
 
 #write into the submission file
 
@@ -555,69 +516,29 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-3" class="section level1">
 <h1>forest 3</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree320&lt;-cbind(drug=truth_set[,3],root20)
-tree320&lt;-clean_names(tree320)
-tree320$drug&lt;-factor(tree320$drug)
-
-
-tree310&lt;-cbind(drug=truth_set[,3],root10)
-tree310&lt;-clean_names(tree310)
-tree310$drug&lt;-factor(tree310$drug)
-
-
-tree305&lt;-cbind(drug=truth_set[,3],root5)
-tree305&lt;-clean_names(tree305)
-tree305$drug&lt;-factor(tree305$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
-oldForest3 &lt;- randomForest( drug∼.,data=tree305  ,mtry=10,ntree=1000)
-oldForest3</code></pre>
+<pre class="r"><code>#attaching the drug data
+tree3&lt;-cbind(drug=truth_set[,3],root)
+tree3&lt;-clean_names(tree3)
+tree3$drug&lt;-factor(tree3$drug)</code></pre>
+<pre class="r"><code>#forest creation
+set.seed(1)
+shire3 &lt;- randomForest( drug∼.,data=tree3  ,mtry=9,ntree=500)
+shire3</code></pre>
 <pre><code>## 
 ## Call:
-##  randomForest(formula = drug ~ ., data = tree305, mtry = 10, ntree = 1000) 
-##                Type of random forest: classification
-##                      Number of trees: 1000
-## No. of variables tried at each split: 10
-## 
-##         OOB estimate of  error rate: 12%
-## Confusion matrix:
-##   0  1 class.error
-## 0 8  2  0.20000000
-## 1 1 14  0.06666667</code></pre>
-<pre class="r"><code>mirkwood3 &lt;- randomForest( drug∼.,data=tree310  ,mtry=8,ntree=1000)
-mirkwood3</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree310, mtry = 8, ntree = 1000) 
-##                Type of random forest: classification
-##                      Number of trees: 1000
-## No. of variables tried at each split: 8
-## 
-##         OOB estimate of  error rate: 12%
-## Confusion matrix:
-##   0  1 class.error
-## 0 7  3         0.3
-## 1 0 15         0.0</code></pre>
-<pre class="r"><code>fangorn3 &lt;- randomForest( drug∼.,data=tree320  ,mtry=6,ntree=500)
-fangorn3</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree320, mtry = 6, ntree = 500) 
+##  randomForest(formula = drug ~ ., data = tree3, mtry = 9, ntree = 500) 
 ##                Type of random forest: classification
 ##                      Number of trees: 500
-## No. of variables tried at each split: 6
+## No. of variables tried at each split: 9
 ## 
-##         OOB estimate of  error rate: 8%
+##         OOB estimate of  error rate: 16%
 ## Confusion matrix:
 ##   0  1 class.error
-## 0 9  1  0.10000000
+## 0 7  3  0.30000000
 ## 1 1 14  0.06666667</code></pre>
-<pre class="r"><code>#used 20%because it had the lowest oob error rate
-pred.of = predict(fangorn3,test20,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
+<pre class="r"><code>#used 1%because it had the lowest oob error rate
+pred.of = predict(shire3,test,type='prob')
+
 
 #write into the submission file
 
@@ -665,22 +586,12 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-4" class="section level1">
 <h1>forest 4</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree420&lt;-cbind(drug=truth_set[,4],root20)
-tree420&lt;-clean_names(tree420)
-tree420$drug&lt;-factor(tree420$drug)
-
-
-tree410&lt;-cbind(drug=truth_set[,4],root10)
-tree410&lt;-clean_names(tree410)
-tree410$drug&lt;-factor(tree410$drug)
-
-
+<pre class="r"><code>##attaching the drug data
 tree405&lt;-cbind(drug=truth_set[,4],root5)
 tree405&lt;-clean_names(tree405)
 tree405$drug&lt;-factor(tree405$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
+<pre class="r"><code>#forest creation
+set.seed(1)
 
 oldForest4 &lt;- randomForest( drug∼.,data=tree405  ,mtry=2,ntree=1000)
 oldForest4</code></pre>
@@ -691,43 +602,14 @@ oldForest4</code></pre>
 ##                      Number of trees: 1000
 ## No. of variables tried at each split: 2
 ## 
-##         OOB estimate of  error rate: 32%
+##         OOB estimate of  error rate: 40%
 ## Confusion matrix:
 ##    0 1 class.error
-## 0 17 0           0
-## 1  8 0           1</code></pre>
-<pre class="r"><code>mirkwood4 &lt;- randomForest( drug∼.,data=tree410  ,mtry=1,ntree=1000)
-mirkwood4</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree410, mtry = 1, ntree = 1000) 
-##                Type of random forest: classification
-##                      Number of trees: 1000
-## No. of variables tried at each split: 1
-## 
-##         OOB estimate of  error rate: 32%
-## Confusion matrix:
-##    0 1 class.error
-## 0 17 0           0
-## 1  8 0           1</code></pre>
-<pre class="r"><code>fangorn4 &lt;- randomForest( drug∼.,data=tree420  ,mtry=2,ntree=500)
-fangorn4</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree420, mtry = 2, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 2
-## 
-##         OOB estimate of  error rate: 36%
-## Confusion matrix:
-##    0 1 class.error
-## 0 16 1  0.05882353
-## 1  8 0  1.00000000</code></pre>
+## 0 15 2   0.1176471
+## 1  8 0   1.0000000</code></pre>
 <pre class="r"><code>#used 5%because it was tied for the lowest oob error rate
 pred.of = predict(oldForest4,test5,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
+
 
 #write into the submission file
 
@@ -775,23 +657,12 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-5" class="section level1">
 <h1>forest 5</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree520&lt;-cbind(drug=truth_set[,5],root20)
-tree520&lt;-clean_names(tree520)
-tree520$drug&lt;-factor(tree520$drug)
-
-
-tree510&lt;-cbind(drug=truth_set[,5],root10)
-tree510&lt;-clean_names(tree510)
-tree510$drug&lt;-factor(tree510$drug)
-
-
+<pre class="r"><code>#attaching the drug data
 tree505&lt;-cbind(drug=truth_set[,5],root5)
 tree505&lt;-clean_names(tree505)
 tree505$drug&lt;-factor(tree505$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
+<pre class="r"><code>#creating the forest
+set.seed(1)
 oldForest5 &lt;- randomForest( drug∼.,data=tree505  ,mtry=8,ntree=500)
 oldForest5</code></pre>
 <pre><code>## 
@@ -801,43 +672,13 @@ oldForest5</code></pre>
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 8
 ## 
-##         OOB estimate of  error rate: 36%
+##         OOB estimate of  error rate: 40%
 ## Confusion matrix:
 ##   0  1 class.error
 ## 0 5  5   0.5000000
-## 1 4 11   0.2666667</code></pre>
-<pre class="r"><code>mirkwood5 &lt;- randomForest( drug∼.,data=tree510  ,mtry=3,ntree=1000)
-mirkwood5</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree510, mtry = 3, ntree = 1000) 
-##                Type of random forest: classification
-##                      Number of trees: 1000
-## No. of variables tried at each split: 3
-## 
-##         OOB estimate of  error rate: 36%
-## Confusion matrix:
-##   0  1 class.error
-## 0 5  5   0.5000000
-## 1 4 11   0.2666667</code></pre>
-<pre class="r"><code>fangorn5 &lt;- randomForest( drug∼.,data=tree520  ,mtry=19,ntree=500)
-fangorn5</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree520, mtry = 19, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 19
-## 
-##         OOB estimate of  error rate: 36%
-## Confusion matrix:
-##   0  1 class.error
-## 0 5  5   0.5000000
-## 1 4 11   0.2666667</code></pre>
+## 1 5 10   0.3333333</code></pre>
 <pre class="r"><code>#used 5%because it was tied for the lowest oob error rate
 pred.of = predict(oldForest5,test5,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
 
 #write into the submission file
 
@@ -885,69 +726,28 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-6" class="section level1">
 <h1>forest 6</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree620&lt;-cbind(drug=truth_set[,6],root20)
-tree620&lt;-clean_names(tree620)
-tree620$drug&lt;-factor(tree620$drug)
-
-
-tree610&lt;-cbind(drug=truth_set[,6],root10)
-tree610&lt;-clean_names(tree610)
-tree610$drug&lt;-factor(tree610$drug)
-
-
-tree605&lt;-cbind(drug=truth_set[,6],root5)
-tree605&lt;-clean_names(tree605)
-tree605$drug&lt;-factor(tree605$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
-oldForest6 &lt;- randomForest( drug∼.,data=tree605  ,mtry=8,ntree=500)
-oldForest6</code></pre>
+<pre class="r"><code>#attaching the drug data
+tree6&lt;-cbind(drug=truth_set[,6],root)
+tree6&lt;-clean_names(tree6)
+tree6$drug&lt;-factor(tree6$drug)</code></pre>
+<pre class="r"><code>#forest creation
+set.seed(1)
+shire6 &lt;- randomForest( drug∼.,data=tree6  ,mtry=5,ntree=1000)
+shire6</code></pre>
 <pre><code>## 
 ## Call:
-##  randomForest(formula = drug ~ ., data = tree605, mtry = 8, ntree = 500) 
+##  randomForest(formula = drug ~ ., data = tree6, mtry = 5, ntree = 1000) 
 ##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 8
-## 
-##         OOB estimate of  error rate: 24%
-## Confusion matrix:
-##   0  1 class.error
-## 0 8  2   0.2000000
-## 1 4 11   0.2666667</code></pre>
-<pre class="r"><code>mirkwood6 &lt;- randomForest( drug∼.,data=tree610  ,mtry=7,ntree=500)
-mirkwood6</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree610, mtry = 7, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 7
-## 
-##         OOB estimate of  error rate: 28%
-## Confusion matrix:
-##   0  1 class.error
-## 0 7  3   0.3000000
-## 1 4 11   0.2666667</code></pre>
-<pre class="r"><code>fangorn6 &lt;- randomForest( drug∼.,data=tree620  ,mtry=20,ntree=500)
-fangorn6</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree620, mtry = 20, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 20
+##                      Number of trees: 1000
+## No. of variables tried at each split: 5
 ## 
 ##         OOB estimate of  error rate: 20%
 ## Confusion matrix:
 ##   0  1 class.error
 ## 0 8  2         0.2
 ## 1 3 12         0.2</code></pre>
-<pre class="r"><code>#used 20%because it had the lowest oob error rate
-pred.of = predict(fangorn6,test20,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
+<pre class="r"><code>#used 1%because it had the lowest oob error rate
+pred.of = predict(shire6,test,type='prob')
 
 #write into the submission file
 
@@ -995,71 +795,28 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-7" class="section level1">
 <h1>forest 7</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree720&lt;-cbind(drug=truth_set[,7],root20)
-tree720&lt;-clean_names(tree720)
-tree720$drug&lt;-factor(tree720$drug)
-
-
-tree710&lt;-cbind(drug=truth_set[,7],root10)
-tree710&lt;-clean_names(tree710)
-tree710$drug&lt;-factor(tree710$drug)
-
-
-tree705&lt;-cbind(drug=truth_set[,7],root5)
-tree705&lt;-clean_names(tree705)
-tree705$drug&lt;-factor(tree705$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-#assuming 0.44 is the lowest
-oldForest7 &lt;- randomForest( drug∼.,data=tree705  ,mtry=10,ntree=1500)
-oldForest7</code></pre>
+<pre class="r"><code>#attaching the drug data
+tree7&lt;-cbind(drug=truth_set[,7],root)
+tree7&lt;-clean_names(tree7)
+tree7$drug&lt;-factor(tree7$drug)</code></pre>
+<pre class="r"><code>#forest creation
+set.seed(1)
+shire7 &lt;- randomForest( drug∼.,data=tree7  ,mtry=6,ntree=3000)
+shire7</code></pre>
 <pre><code>## 
 ## Call:
-##  randomForest(formula = drug ~ ., data = tree705, mtry = 10, ntree = 1500) 
+##  randomForest(formula = drug ~ ., data = tree7, mtry = 6, ntree = 3000) 
 ##                Type of random forest: classification
-##                      Number of trees: 1500
-## No. of variables tried at each split: 10
-## 
-##         OOB estimate of  error rate: 48%
-## Confusion matrix:
-##   0  1 class.error
-## 0 3  9   0.7500000
-## 1 3 10   0.2307692</code></pre>
-<pre class="r"><code>#assuming 0.40 is the lowest
-mirkwood7 &lt;- randomForest( drug∼.,data=tree710  ,mtry=15,ntree=1000)
-mirkwood7</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree710, mtry = 15, ntree = 1000) 
-##                Type of random forest: classification
-##                      Number of trees: 1000
-## No. of variables tried at each split: 15
-## 
-##         OOB estimate of  error rate: 48%
-## Confusion matrix:
-##   0 1 class.error
-## 0 4 8   0.6666667
-## 1 4 9   0.3076923</code></pre>
-<pre class="r"><code>#assuming 0.40 is the lowest
-fangorn7 &lt;- randomForest( drug∼.,data=tree720  ,mtry=14,ntree=2000)
-fangorn7</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree720, mtry = 14, ntree = 2000) 
-##                Type of random forest: classification
-##                      Number of trees: 2000
-## No. of variables tried at each split: 14
+##                      Number of trees: 3000
+## No. of variables tried at each split: 6
 ## 
 ##         OOB estimate of  error rate: 48%
 ## Confusion matrix:
 ##   0 1 class.error
 ## 0 5 7   0.5833333
 ## 1 5 8   0.3846154</code></pre>
-<pre class="r"><code>#used 5%because it was tied lowest oob error rate
-pred.of = predict(oldForest7,test5,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
+<pre class="r"><code>#used 1%because it was tied lowest oob error rate
+pred.of = predict(shire7,test,type='prob')
 
 #write into the submission file
 
@@ -1107,39 +864,13 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-8" class="section level1">
 <h1>forest 8</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree820&lt;-cbind(drug=truth_set[,8],root20)
-tree820&lt;-clean_names(tree820)
-tree820$drug&lt;-factor(tree820$drug)
-
-
+<pre class="r"><code>#attaching the drug data
 tree810&lt;-cbind(drug=truth_set[,8],root10)
 tree810&lt;-clean_names(tree810)
-tree810$drug&lt;-factor(tree810$drug)
-
-
-tree805&lt;-cbind(drug=truth_set[,8],root5)
-tree805&lt;-clean_names(tree805)
-tree805$drug&lt;-factor(tree805$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
+tree810$drug&lt;-factor(tree810$drug)</code></pre>
+<pre class="r"><code>#forest creation
+set.seed(1)
 #assuming that 0.20 is the lowest
-oldForest8 &lt;- randomForest( drug∼.,data=tree805  ,mtry=5,ntree=500)
-oldForest8</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree805, mtry = 5, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 5
-## 
-##         OOB estimate of  error rate: 28%
-## Confusion matrix:
-##   0  1 class.error
-## 0 8  4   0.3333333
-## 1 3 10   0.2307692</code></pre>
-<pre class="r"><code>#assuming that 0.20 is the lowest
 mirkwood8 &lt;- randomForest( drug∼.,data=tree810  ,mtry=4,ntree=1000)
 mirkwood8</code></pre>
 <pre><code>## 
@@ -1149,30 +880,13 @@ mirkwood8</code></pre>
 ##                      Number of trees: 1000
 ## No. of variables tried at each split: 4
 ## 
-##         OOB estimate of  error rate: 24%
+##         OOB estimate of  error rate: 20%
 ## Confusion matrix:
 ##   0  1 class.error
-## 0 7  5  0.41666667
+## 0 8  4  0.33333333
 ## 1 1 12  0.07692308</code></pre>
-<pre class="r"><code>#assuming that 0.20 is the lowest 
-fangorn8 &lt;- randomForest( drug∼.,data=tree820  ,mtry=4,ntree=1500)
-fangorn8</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree820, mtry = 4, ntree = 1500) 
-##                Type of random forest: classification
-##                      Number of trees: 1500
-## No. of variables tried at each split: 4
-## 
-##         OOB estimate of  error rate: 28%
-## Confusion matrix:
-##   0  1 class.error
-## 0 7  5   0.4166667
-## 1 2 11   0.1538462</code></pre>
 <pre class="r"><code>#used 10%because it had the lowest oob error rate
 pred.of = predict(mirkwood8,test10,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
 
 #write into the submission file
 
@@ -1220,72 +934,28 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-9" class="section level1">
 <h1>forest 9</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree920&lt;-cbind(drug=truth_set[,9],root20)
-tree920&lt;-clean_names(tree920)
-tree920$drug&lt;-factor(tree920$drug)
-
-
-tree910&lt;-cbind(drug=truth_set[,9],root10)
-tree910&lt;-clean_names(tree910)
-tree910$drug&lt;-factor(tree910$drug)
-
-
-tree905&lt;-cbind(drug=truth_set[,9],root5)
-tree905&lt;-clean_names(tree905)
-tree905$drug&lt;-factor(tree905$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
-#assuming that 0.32 is the lowest
-oldForest9 &lt;- randomForest( drug∼.,data=tree905  ,mtry=10,ntree=500)
-oldForest9</code></pre>
+<pre class="r"><code>#attaching the drug data
+tree9&lt;-cbind(drug=truth_set[,9],root)
+tree9&lt;-clean_names(tree9)
+tree9$drug&lt;-factor(tree9$drug)</code></pre>
+<pre class="r"><code>#forest creation
+set.seed(1)
+shire9 &lt;- randomForest( drug∼.,data=tree9  ,mtry=3,ntree=1000)
+shire9</code></pre>
 <pre><code>## 
 ## Call:
-##  randomForest(formula = drug ~ ., data = tree905, mtry = 10, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 10
-## 
-##         OOB estimate of  error rate: 48%
-## Confusion matrix:
-##   0 1 class.error
-## 0 9 5   0.3571429
-## 1 7 4   0.6363636</code></pre>
-<pre class="r"><code>#assuming that 0.32 is the lowest
-mirkwood9 &lt;- randomForest( drug∼.,data=tree910  ,mtry=9,ntree=1000)
-mirkwood9</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree910, mtry = 9, ntree = 1000) 
+##  randomForest(formula = drug ~ ., data = tree9, mtry = 3, ntree = 1000) 
 ##                Type of random forest: classification
 ##                      Number of trees: 1000
-## No. of variables tried at each split: 9
+## No. of variables tried at each split: 3
 ## 
-##         OOB estimate of  error rate: 40%
+##         OOB estimate of  error rate: 36%
 ## Confusion matrix:
 ##    0 1 class.error
-## 0 12 2   0.1428571
-## 1  8 3   0.7272727</code></pre>
-<pre class="r"><code>#assuming that 0.28 is the lowest
-fangorn9 &lt;- randomForest( drug∼.,data=tree920  ,mtry=4,ntree=1500)
-fangorn9</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree920, mtry = 4, ntree = 1500) 
-##                Type of random forest: classification
-##                      Number of trees: 1500
-## No. of variables tried at each split: 4
-## 
-##         OOB estimate of  error rate: 40%
-## Confusion matrix:
-##    0 1 class.error
-## 0 12 2   0.1428571
-## 1  8 3   0.7272727</code></pre>
-<pre class="r"><code>#used 10%because it was tied for the lowest oob error rate
-pred.of = predict(mirkwood9,test10,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
+## 0 11 3   0.2142857
+## 1  6 5   0.5454545</code></pre>
+<pre class="r"><code>#used 1%because it was tied for the lowest oob error rate
+pred.of = predict(shire9,test,type='prob')
 
 #write into the submission file
 
@@ -1333,39 +1003,13 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-10" class="section level1">
 <h1>forest 10</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree1020&lt;-cbind(drug=truth_set[,10],root20)
-tree1020&lt;-clean_names(tree1020)
-tree1020$drug&lt;-factor(tree1020$drug)
-
-
+<pre class="r"><code>##attaching the drug data
 tree1010&lt;-cbind(drug=truth_set[,10],root10)
 tree1010&lt;-clean_names(tree1010)
-tree1010$drug&lt;-factor(tree1010$drug)
-
-
-tree1005&lt;-cbind(drug=truth_set[,10],root5)
-tree1005&lt;-clean_names(tree1005)
-tree1005$drug&lt;-factor(tree1005$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
+tree1010$drug&lt;-factor(tree1010$drug)</code></pre>
+<pre class="r"><code>set.seed(1)
+#forest creation
 #assuming that 0.20 is the lowest
-oldForest10 &lt;- randomForest( drug∼.,data=tree1005  ,mtry=4,ntree=500)
-oldForest10</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree1005, mtry = 4, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 4
-## 
-##         OOB estimate of  error rate: 36%
-## Confusion matrix:
-##    0 1 class.error
-## 0 12 3         0.2
-## 1  6 4         0.6</code></pre>
-<pre class="r"><code>#assuming that 0.20 is the lowest
 mirkwood10 &lt;- randomForest( drug∼.,data=tree1010  ,mtry=11,ntree=500)
 mirkwood10</code></pre>
 <pre><code>## 
@@ -1375,30 +1019,14 @@ mirkwood10</code></pre>
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 11
 ## 
-##         OOB estimate of  error rate: 16%
-## Confusion matrix:
-##    0 1 class.error
-## 0 14 1  0.06666667
-## 1  3 7  0.30000000</code></pre>
-<pre class="r"><code>#assuming that 0.28 is the lowest
-fangorn10 &lt;- randomForest( drug∼.,data=tree1020  ,mtry=8,ntree=500)
-fangorn10</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree1020, mtry = 8, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 8
-## 
-##         OOB estimate of  error rate: 24%
+##         OOB estimate of  error rate: 28%
 ## Confusion matrix:
 ##    0 1 class.error
 ## 0 13 2   0.1333333
-## 1  4 6   0.4000000</code></pre>
+## 1  5 5   0.5000000</code></pre>
 <pre class="r"><code>#used 10%because it was the lowest oob error rate
 pred.of = predict(mirkwood10,test10,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
+
 
 #write into the submission file
 
@@ -1446,54 +1074,13 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-11" class="section level1">
 <h1>Forest 11</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
+<pre class="r"><code>#attaching the drug data
 tree1120&lt;-cbind(drug=truth_set[,11],root20)
 tree1120&lt;-clean_names(tree1120)
-tree1120$drug&lt;-factor(tree1120$drug)
-
-
-tree1110&lt;-cbind(drug=truth_set[,11],root10)
-tree1110&lt;-clean_names(tree1110)
-tree1110$drug&lt;-factor(tree1110$drug)
-
-
-tree1105&lt;-cbind(drug=truth_set[,11],root5)
-tree1105&lt;-clean_names(tree1105)
-tree1105$drug&lt;-factor(tree1105$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
-#assuming that 0.44 is the lowest
-oldForest11 &lt;- randomForest( drug∼.,data=tree1105  ,mtry=2,ntree=500)
-oldForest11</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree1105, mtry = 2, ntree = 500) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 2
-## 
-##         OOB estimate of  error rate: 60%
-## Confusion matrix:
-##   0  1 class.error
-## 0 0 10   1.0000000
-## 1 5 10   0.3333333</code></pre>
-<pre class="r"><code>#assuming that 0.44 is the lowest
-mirkwood11 &lt;- randomForest( drug∼.,data=tree1110  ,mtry=3,ntree=1000)
-mirkwood11</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree1110, mtry = 3, ntree = 1000) 
-##                Type of random forest: classification
-##                      Number of trees: 1000
-## No. of variables tried at each split: 3
-## 
-##         OOB estimate of  error rate: 52%
-## Confusion matrix:
-##   0  1 class.error
-## 0 0 10         1.0
-## 1 3 12         0.2</code></pre>
-<pre class="r"><code>#assuming that 0.40 is the lowest
+tree1120$drug&lt;-factor(tree1120$drug)</code></pre>
+<pre class="r"><code>#Forest creation
+set.seed(1)
+#assuming that 0.40 is the lowest
 fangorn11 &lt;- randomForest( drug∼.,data=tree1120  ,mtry=6,ntree=500)
 fangorn11</code></pre>
 <pre><code>## 
@@ -1503,15 +1090,13 @@ fangorn11</code></pre>
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 6
 ## 
-##         OOB estimate of  error rate: 48%
+##         OOB estimate of  error rate: 44%
 ## Confusion matrix:
 ##   0  1 class.error
-## 0 1  9         0.9
+## 0 2  8         0.8
 ## 1 3 12         0.2</code></pre>
 <pre class="r"><code>#used 20%because it was the lowest oob error rate
 pred.of = predict(fangorn11,test20,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
 
 #write into the submission file
 
@@ -1559,39 +1144,13 @@ submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 </div>
 <div id="forest-12" class="section level1">
 <h1>forest 12</h1>
-<pre class="r"><code>#straping the first column of the truth set to the tree
-tree1220&lt;-cbind(drug=truth_set[,12],root20)
-tree1220&lt;-clean_names(tree1220)
-tree1220$drug&lt;-factor(tree1220$drug)
-
-
+<pre class="r"><code>#attaching the drug data
 tree1210&lt;-cbind(drug=truth_set[,12],root10)
 tree1210&lt;-clean_names(tree1210)
-tree1210$drug&lt;-factor(tree1210$drug)
-
-
-tree1205&lt;-cbind(drug=truth_set[,12],root5)
-tree1205&lt;-clean_names(tree1205)
-tree1205$drug&lt;-factor(tree1205$drug)</code></pre>
-<pre class="r"><code>set.seed(25000)
-#BAROOM dont be hasty now
-
-#assuming that 0.44 is the lowest
-oldForest12 &lt;- randomForest( drug∼.,data=tree1205  ,mtry=2,ntree=750)
-oldForest12</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree1205, mtry = 2, ntree = 750) 
-##                Type of random forest: classification
-##                      Number of trees: 750
-## No. of variables tried at each split: 2
-## 
-##         OOB estimate of  error rate: 44%
-## Confusion matrix:
-##   0  1 class.error
-## 0 0 10  1.00000000
-## 1 1 14  0.06666667</code></pre>
-<pre class="r"><code>#assuming that 0.40 is the lowest
+tree1210$drug&lt;-factor(tree1210$drug)</code></pre>
+<pre class="r"><code>#forest creation
+set.seed(1)
+#assuming that 0.40 is the lowest
 mirkwood12 &lt;- randomForest( drug∼.,data=tree1210  ,mtry=17,ntree=750)
 mirkwood12</code></pre>
 <pre><code>## 
@@ -1601,30 +1160,14 @@ mirkwood12</code></pre>
 ##                      Number of trees: 750
 ## No. of variables tried at each split: 17
 ## 
-##         OOB estimate of  error rate: 36%
+##         OOB estimate of  error rate: 44%
 ## Confusion matrix:
 ##   0  1 class.error
-## 0 2  8  0.80000000
-## 1 1 14  0.06666667</code></pre>
-<pre class="r"><code>#assuming that 0.40 is the lowest
-fangorn12 &lt;- randomForest( drug∼.,data=tree1220  ,mtry=16,ntree=750)
-fangorn12</code></pre>
-<pre><code>## 
-## Call:
-##  randomForest(formula = drug ~ ., data = tree1220, mtry = 16,      ntree = 750) 
-##                Type of random forest: classification
-##                      Number of trees: 750
-## No. of variables tried at each split: 16
-## 
-##         OOB estimate of  error rate: 40%
-## Confusion matrix:
-##   0  1 class.error
-## 0 2  8   0.8000000
+## 0 1  9   0.9000000
 ## 1 2 13   0.1333333</code></pre>
 <pre class="r"><code>#used 10%because it was the lowest oob error rate
 pred.of = predict(mirkwood12,test10,type='prob')
-seeds&lt;-as.data.frame(pred.of)
-seeds$&quot;0&quot;&lt;-NULL
+
 
 #write into the submission file
 
@@ -1670,177 +1213,7 @@ submission[ind, 5] &lt;- pred.of[2,2]
 ind &lt;- which((submission[,1]==&quot;MCF10A&quot; &amp; submission[,2]==&quot;Paclitaxel&quot;))
 submission[ind, 5] &lt;- pred.of[8,2]</code></pre>
 <pre class="r"><code>kaggel&lt;-data.frame(submission$id , submission$train_accuracy)
-kaggel</code></pre>
-<pre><code>##     submission.id submission.train_accuracy
-## 1               1                 0.5840000
-## 2               2                 0.4530000
-## 3               3                 0.4145000
-## 4               4                 0.5815000
-## 5               5                 0.5955000
-## 6               6                 0.5195000
-## 7               7                 0.6170000
-## 8               8                 0.5370000
-## 9               9                 0.4840000
-## 10             10                 0.5460000
-## 11             11                 0.2720000
-## 12             12                 0.1700000
-## 13             13                 0.6600000
-## 14             14                 0.5860000
-## 15             15                 0.4360000
-## 16             16                 0.7180000
-## 17             17                 0.5420000
-## 18             18                 0.8640000
-## 19             19                 0.6480000
-## 20             20                 0.5500000
-## 21             21                 0.2960000
-## 22             22                 0.7860000
-## 23             23                 0.7360000
-## 24             24                 0.5120000
-## 25             25                 0.7300000
-## 26             26                 0.6940000
-## 27             27                 0.8600000
-## 28             28                 0.3310000
-## 29             29                 0.2270000
-## 30             30                 0.2340000
-## 31             31                 0.3960000
-## 32             32                 0.4270000
-## 33             33                 0.3530000
-## 34             34                 0.3280000
-## 35             35                 0.3560000
-## 36             36                 0.3180000
-## 37             37                 0.5600000
-## 38             38                 0.4620000
-## 39             39                 0.3720000
-## 40             40                 0.7620000
-## 41             41                 0.7660000
-## 42             42                 0.5300000
-## 43             43                 0.6740000
-## 44             44                 0.5920000
-## 45             45                 0.8860000
-## 46             46                 0.7120000
-## 47             47                 0.4800000
-## 48             48                 0.2840000
-## 49             49                 0.8360000
-## 50             50                 0.7940000
-## 51             51                 0.5260000
-## 52             52                 0.7700000
-## 53             53                 0.5960000
-## 54             54                 0.8340000
-## 55             55                 0.4566667
-## 56             56                 0.5760000
-## 57             57                 0.4853333
-## 58             58                 0.4993333
-## 59             59                 0.4480000
-## 60             60                 0.5220000
-## 61             61                 0.4960000
-## 62             62                 0.6273333
-## 63             63                 0.6486667
-## 64             64                 0.5330000
-## 65             65                 0.5780000
-## 66             66                 0.4120000
-## 67             67                 0.4920000
-## 68             68                 0.3730000
-## 69             69                 0.5720000
-## 70             70                 0.5780000
-## 71             71                 0.7090000
-## 72             72                 0.7580000
-## 73             73                 0.4280000
-## 74             74                 0.4290000
-## 75             75                 0.4170000
-## 76             76                 0.3060000
-## 77             77                 0.3140000
-## 78             78                 0.5760000
-## 79             79                 0.4460000
-## 80             80                 0.5630000
-## 81             81                 0.3970000
-## 82             82                 0.4560000
-## 83             83                 0.2660000
-## 84             84                 0.1680000
-## 85             85                 0.7060000
-## 86             86                 0.7400000
-## 87             87                 0.2940000
-## 88             88                 0.4120000
-## 89             89                 0.2940000
-## 90             90                 0.6620000
-## 91             91                 0.6080000
-## 92             92                 0.6080000
-## 93             93                 0.7040000
-## 94             94                 0.4300000
-## 95             95                 0.4800000
-## 96             96                 0.6840000
-## 97             97                 0.5920000
-## 98             98                 0.6600000
-## 99             99                 0.4900000
-## 100           100                 0.5733333
-## 101           101                 0.6146667
-## 102           102                 0.4773333
-## 103           103                 0.6946667
-## 104           104                 0.6026667
-## 105           105                 0.5613333
-## 106           106                 0.6066667
-## 107           107                 0.6480000
-## 108           108                 0.6853333
-## 109           109                 0.4800000
-## 110           110                 0.6185000
-## 111           111                 0.6290000
-## 112           112                 0.4680000
-## 113           113                 0.5440000
-## 114           114                 0.8040000
-## 115           115                 0.7080000
-## 116           116                 0.5600000
-## 117           117                 0.3760000
-## 118           118                 0.4760000
-## 119           119                 0.8400000
-## 120           120                 0.7560000
-## 121           121                 0.7500000
-## 122           122                 0.6440000
-## 123           123                 0.5980000
-## 124           124                 0.3340000
-## 125           125                 0.3160000
-## 126           126                 0.4520000
-## 127           127                 0.2430000
-## 128           128                 0.3540000
-## 129           129                 0.8080000
-## 130           130                 0.6960000
-## 131           131                 0.8000000
-## 132           132                 0.5020000
-## 133           133                 0.5520000
-## 134           134                 0.8140000
-## 135           135                 0.8140000
-## 136           136                 0.7840000
-## 137           137                 0.4780000
-## 138           138                 0.5860000
-## 139           139                 0.6353333
-## 140           140                 0.5006667
-## 141           141                 0.4186667
-## 142           142                 0.5826667
-## 143           143                 0.5346667
-## 144           144                 0.7030000
-## 145           145                 0.5430000
-## 146           146                 0.3390000
-## 147           147                 0.5860000
-## 148           148                 0.6050000
-## 149           149                 0.3860000
-## 150           150                 0.3630000
-## 151           151                 0.3130000
-## 152           152                 0.4500000
-## 153           153                 0.5960000
-## 154           154                 0.5840000
-## 155           155                 0.5580000
-## 156           156                 0.6860000
-## 157           157                 0.2960000
-## 158           158                 0.2780000
-## 159           159                 0.4940000
-## 160           160                 0.5480000
-## 161           161                 0.4820000
-## 162           162                 0.6680000
-## 163           163                 0.6800000
-## 164           164                 0.6013333
-## 165           165                 0.5706667
-## 166           166                 0.6173333
-## 167           167                 0.6253333
-## 168           168                 0.6400000</code></pre>
-<pre class="r"><code>write.csv(kaggel,file=&quot;trees.csv&quot;)</code></pre>
+write.csv(kaggel,file=&quot;trees.csv&quot;)</code></pre>
 </div>
 
 

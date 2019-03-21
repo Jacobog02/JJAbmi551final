@@ -1,7 +1,5 @@
 "0","#used 5%because it was tied for the lowest oob error rate"
 "0","pred.of = predict(oldForest4,test5,type='prob')"
-"0","seeds<-as.data.frame(pred.of)"
-"0","seeds$""0""<-NULL"
 "0","#write into the submission file"
 "0","ind <- which((submission[,1]==""HCC1187"" & submission[,2]==""GSK1070916""))"
 "0","submission[ind, 5] <- pred.of[4,2]"

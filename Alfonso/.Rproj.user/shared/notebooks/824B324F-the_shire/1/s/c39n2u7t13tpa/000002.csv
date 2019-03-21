@@ -1,0 +1,3 @@
+"0","tree3<-cbind(drug=truth_set[,3],root)"
+"0","tree3<-clean_names(tree3)"
+"0","tree3$drug<-factor(tree3$drug)"
