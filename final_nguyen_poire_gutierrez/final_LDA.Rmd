@@ -82,6 +82,8 @@ Initially, I wanted to try to model drug responsiveness on the breast cancer cel
 
 A pitfall of LDA as a classifier is that the predictor variables must be fed into the formula in order for the model to be build. That means that I have to somehow use feature selection to buld the model. My goal was to sort all the genes by their variance and try to create a cut-off for the top most variant genes and use those for my predictors. 
 
+Based on the published information from the authors, they determined that just the subtype alone would be a good predictor for classifying hte drug responsiveness for the cell lines but addining int he gene expression data makes the model more accurate. This makes sense because there is evidence that there are distinct categorizations even within the subtypes. 
+
 An important assumption for an LDA model is that there is no multi-colinearity in the data. Adding in variables with multi-colinearity create biases in the weight for each variable that is used in the model formula. I try to account for that below.   
 
 The first step was to create a matrix with all the variances of each gene across each sample. I then pull out the variances for each quantile in 1% increments. My strategy was to create a model for each drug (12 models total) but optimize how many highest variance features I will use for each model. I will compare the top 1%, 5% and 10% most variant genes across the training sample.  
@@ -290,6 +292,7 @@ results[ , 'CV_accuracy'] <- NA
 The next section (very large section) is training my LDA model on the 12 drugs - 12 models total. I use LDA with 10-fold cross validation with 10x repeated sampling. I perform this with the 1%, 5% and 10% top variant genes that have 25% of the most correlated genes summed against all other features pulled out. It is also important that the cell line subtype is also a feature that I will use in all my models to predict drug responsiveness.    
 
 I train the model, then I pull out the cross-validation accuracy for pulling the model. I then train on the training set again and pull the training accuracy. I save those values into my ```results``` data table to compare the best paramater is for each drug.  
+
 
 ## MODEL 1 - CGC.11047 DRUG
 
