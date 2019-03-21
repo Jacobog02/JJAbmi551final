@@ -1,0 +1,948 @@
+---
+title: "forrest prediction"
+output: html_document
+---
+This is the document that writes the final submission section for the kaggel competition. After the information from both the fangorn and shire files has been completed each of the models is compared to one another for each drug and the one with the lowest oob error rate is selected to be used in the final model. If a tie occurs the lowest drug variance is chosen this is because when run multiple ways it seemed as though the lower variance rates yielded better results over all. Then the predict function is run on each of the drug models and out puts a probability matrix for each of the drug cell line combinations this is saved under its drug cell line combination to a csv file named submission that is written out and used to submit to kaggel. 
+
+this version is the best out put from the project using the following breakdown of variance models 
+1% variance models = 6
+
+5% models = 2
+
+10% models = 3
+
+20% models = 1
+
+```{r}
+sessionInfo()
+```
+
+```{r}
+set.seed(25000)
+library(tidyverse)
+library(ggplot2)
+library(cowplot)
+library(randomForest)
+library(parallel)
+library(skimr)
+library(broom)
+library(janitor)
+library(dplyr)
+library(readr)
+library(genefilter)
+#library(parLapply)
+
+```
+
+
+```{r}
+#Read in the cleaned expression data
+expression <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+
+# Read in the subtype data
+subtypes <- read_tsv("../data/clean_subtypes.txt")
+
+# Read in the truth set
+truth_set <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+
+
+# Create merged feature set
+featureSet<-cbind(subtypes[,2],t(expression))
+
+#read in the submission table
+submission<-as.data.frame((read.csv("../data/scoring_and_test_set_id_mappings.csv")))
+submission[ , 'train_accuracy'] <- NA
+
+#read in the test sethead
+test<-as.data.frame(t(read.table("../data/clean_test_expression.txt", row.names=1 )))
+test<-clean_names(test)
+```
+
+```{r}
+expVar <- (rowVars(expression))
+hist(expVar)
+expVar <- as.data.frame(expVar)
+names(expVar) <- c('variance')
+
+paste('max variance:', max(expVar[,1]))
+paste('min variance:', min(expVar[,1]))
+
+#top 20 of genes
+expVar %>% count((variance > '0.5'))
+top20 <- expVar$variance > 0.5 
+root20 <- expression[top20,]
+root20<-data.frame(t(root20))
+dim(root20)
+
+
+
+
+#top 10% of genes
+expVar %>% count((variance > '1'))
+top10 <- expVar$variance > 1 
+root10 <- expression[top10,]
+root10<-data.frame(t(root10))
+dim(root10)
+
+
+
+
+#top 5% of genes
+expVar %>% count((variance > '1.5'))
+top5 <- expVar$variance > 1.5 
+root5 <- expression[top5,]
+root5<-data.frame(t(root5))
+dim(root5)
+
+#top 1% of genes 
+#top 1 of genes
+expVar %>% count((variance > '3.5'))
+top <- expVar$variance > 3.5
+root <- expression[top,]
+root<-data.frame(t(root))
+dim(root)
+
+
+```
+```{r}
+expVar<-clean_names(expVar)
+#subsetting the test set by the different varient calls
+#20%
+top20 <- expVar$variance > 0.5 
+test20<- test[,(top20)]
+test20<-clean_names(test20)
+colnames(test20)[1]<-"x184a1"
+
+#10%
+top10 <- expVar$variance > 1 
+test10<- test[,(top10)]
+test10<-clean_names(test10)
+colnames(test10)[1]<-"x184a1"
+#5%
+top5<- expVar$variance > 1.5 
+test5<- test[,(top5)]
+colnames(test5)[1]<-"x184a1"
+
+top <- expVar$variance > 3.5 
+test<- test[,(top)]
+test<-clean_names(test)
+colnames(test)[1]<-"x184a1"
+```
+
+#forest 1
+```{r}
+#attaching the drug data
+tree1<-cbind(drug=truth_set[,1],root)
+tree1<-clean_names(tree1)
+tree1$drug<-factor(tree1$drug)
+
+```
+
+```{r}
+#creating the forest
+set.seed(1)
+shire <- randomForest( drug∼.,data=tree1  ,mtry=2,ntree=1000)
+shire
+
+```
+
+
+```{r}
+
+#uses the 1% variant forest because it had the lowest OOB 
+pred.of = predict(shire,test,type='prob')
+
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[8,2]
+
+
+```
+
+#forest 2
+```{r}
+#attaching the drug data
+tree2<-cbind(drug=truth_set[,2],root)
+tree2<-clean_names(tree2)
+tree2$drug<-factor(tree2$drug)
+```
+
+```{r}
+#forest creation
+set.seed(1)
+shire2 <- randomForest( drug∼.,data=tree2  ,mtry=2,ntree=500)
+shire2
+```
+
+```{r}
+#uses the 1 % variant forest because it was tied for lowest oob 
+pred.of = predict(shire2,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[8,2]
+
+
+```
+
+#forest 3
+```{r}
+#attaching the drug data
+tree3<-cbind(drug=truth_set[,3],root)
+tree3<-clean_names(tree3)
+tree3$drug<-factor(tree3$drug)
+```
+
+```{r}
+#forest creation
+set.seed(1)
+shire3 <- randomForest( drug∼.,data=tree3  ,mtry=9,ntree=500)
+shire3
+```
+
+```{r}
+#used 1%because it had the lowest oob error rate
+pred.of = predict(shire3,test,type='prob')
+
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#forest 4
+```{r}
+##attaching the drug data
+tree405<-cbind(drug=truth_set[,4],root5)
+tree405<-clean_names(tree405)
+tree405$drug<-factor(tree405$drug)
+```
+
+```{r}
+#forest creation
+set.seed(1)
+
+oldForest4 <- randomForest( drug∼.,data=tree405  ,mtry=2,ntree=1000)
+oldForest4
+```
+
+```{r}
+#used 5%because it was tied for the lowest oob error rate
+pred.of = predict(oldForest4,test5,type='prob')
+
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+#forest 5
+```{r}
+#attaching the drug data
+tree505<-cbind(drug=truth_set[,5],root5)
+tree505<-clean_names(tree505)
+tree505$drug<-factor(tree505$drug)
+```
+
+```{r}
+#creating the forest
+set.seed(1)
+oldForest5 <- randomForest( drug∼.,data=tree505  ,mtry=8,ntree=500)
+oldForest5
+```
+
+```{r}
+#used 5%because it was tied for the lowest oob error rate
+pred.of = predict(oldForest5,test5,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+#forest 6
+```{r}
+#attaching the drug data
+tree6<-cbind(drug=truth_set[,6],root)
+tree6<-clean_names(tree6)
+tree6$drug<-factor(tree6$drug)
+```
+
+```{r}
+#forest creation
+set.seed(1)
+shire6 <- randomForest( drug∼.,data=tree6  ,mtry=5,ntree=1000)
+shire6
+```
+
+```{r}
+#used 1%because it had the lowest oob error rate
+pred.of = predict(shire6,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+#forest 7
+```{r}
+#attaching the drug data
+tree7<-cbind(drug=truth_set[,7],root)
+tree7<-clean_names(tree7)
+tree7$drug<-factor(tree7$drug)
+
+```
+
+```{r}
+#forest creation
+set.seed(1)
+shire7 <- randomForest( drug∼.,data=tree7  ,mtry=6,ntree=3000)
+shire7
+```
+
+```{r}
+#used 1%because it was tied lowest oob error rate
+pred.of = predict(shire7,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[8,2]
+
+```
+
+#forest 8
+```{r}
+#attaching the drug data
+tree810<-cbind(drug=truth_set[,8],root10)
+tree810<-clean_names(tree810)
+tree810$drug<-factor(tree810$drug)
+
+```
+
+```{r}
+#forest creation
+set.seed(1)
+#assuming that 0.20 is the lowest
+mirkwood8 <- randomForest( drug∼.,data=tree810  ,mtry=4,ntree=1000)
+mirkwood8
+
+```
+
+```{r}
+#used 10%because it had the lowest oob error rate
+pred.of = predict(mirkwood8,test10,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[8,2]
+
+```
+
+#forest 9
+```{r}
+#attaching the drug data
+tree9<-cbind(drug=truth_set[,9],root)
+tree9<-clean_names(tree9)
+tree9$drug<-factor(tree9$drug)
+
+```
+
+```{r}
+#forest creation
+set.seed(1)
+shire9 <- randomForest( drug∼.,data=tree9  ,mtry=3,ntree=1000)
+shire9
+```
+
+```{r}
+#used 1%because it was tied for the lowest oob error rate
+pred.of = predict(shire9,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+#forest 10
+```{r}
+##attaching the drug data
+tree1010<-cbind(drug=truth_set[,10],root10)
+tree1010<-clean_names(tree1010)
+tree1010$drug<-factor(tree1010$drug)
+
+```
+
+```{r}
+set.seed(1)
+#forest creation
+#assuming that 0.20 is the lowest
+mirkwood10 <- randomForest( drug∼.,data=tree1010  ,mtry=11,ntree=500)
+mirkwood10
+
+```
+
+```{r}
+#used 10%because it was the lowest oob error rate
+pred.of = predict(mirkwood10,test10,type='prob')
+
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[8,2]
+
+
+```
+
+
+#Forest 11
+```{r}
+#attaching the drug data
+tree1120<-cbind(drug=truth_set[,11],root20)
+tree1120<-clean_names(tree1120)
+tree1120$drug<-factor(tree1120$drug)
+```
+
+```{r}
+#Forest creation
+set.seed(1)
+#assuming that 0.40 is the lowest
+fangorn11 <- randomForest( drug∼.,data=tree1120  ,mtry=6,ntree=500)
+fangorn11
+```
+
+```{r}
+#used 20%because it was the lowest oob error rate
+pred.of = predict(fangorn11,test20,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+#forest 12
+```{r}
+#attaching the drug data
+tree1210<-cbind(drug=truth_set[,12],root10)
+tree1210<-clean_names(tree1210)
+tree1210$drug<-factor(tree1210$drug)
+```
+
+```{r}
+#forest creation
+set.seed(1)
+#assuming that 0.40 is the lowest
+mirkwood12 <- randomForest( drug∼.,data=tree1210  ,mtry=17,ntree=750)
+mirkwood12
+
+```
+
+```{r}
+#used 10%because it was the lowest oob error rate
+pred.of = predict(mirkwood12,test10,type='prob')
+
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+```{r}
+kaggel<-data.frame(submission$id , submission$train_accuracy)
+write.csv(kaggel,file="trees.csv")
+```
+
+
+
+
+
+
+
+
+
+
+
+
