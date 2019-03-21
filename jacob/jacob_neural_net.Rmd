@@ -103,7 +103,6 @@ Additionally I learned that the normalization and activation functions are depen
 I have 2 function natively available, logistic and tanh.
 logistic activation requires data to be between 0 and 1 (min-max scaling). Logistic activation suffers from inabillity to deeply propogate through a network when your netowrk becomes large. In full honesty I could not find any suorces on if a network with 100,20 hidden nodes will suffer from this. Based on that literal one class of Xubo's ML class she said it matter when you have hundreds of hidden layers so I am maybe fine?
 tanh activation requires data between -1 and 1(min-max scaling rescaled). It does not suffer as many back propogation issues but traditional backpropogation does not operate as well so a different algorithm is such as RProp+. Resilent Backpropogation with backtracing is a modified backpropogation algortim that 
-# EXPLAIN MORE HERE
 
 I tried to implement relu but it didnt work.... Relu requires data between 0 and 1. which is the min-max scaling
 neuralnet requires the activation function to be derivable and I tried to follow a post references below but to no avail...
@@ -251,7 +250,7 @@ I did attempt to use another algortihm besides traditional backpropogation. Thro
 
 
 
-```{r gen_cross_mat}
+```{r gen_cross_mat, eval = F}
 k <- .01 # for softmax approx
 soft_plus_appr <- function(x) {x/(1+exp(-2*k*x))} # Larger k means accurate approcimation but hard to dervive
 soft_plus <- function(x) {log(1+exp(x))} # This didnt work too :(
@@ -400,7 +399,7 @@ At the top I sourced the script
 
 
 Please disregrad the empty plot I cant figure out the bug....
-```{r plot_testing}
+```{r plot_testing, eval=F}
 # Get the labels for axies
 names <- names(final_matrix)
 
@@ -474,6 +473,8 @@ val_plot <- grid_arrange_shared_legend(ggpls, ncol=2,nrow=2, position = 'right',
 ggsave('gutierrez_100_20.png',val_plot)
 ```
 
+Due to the compute time of cross validation I simply added the attached plot here
+![neural net figure](gutierrez_100_20.png)
 
 
 
@@ -503,12 +504,13 @@ ___
 using the optimal parameters found during cross-validation
 
 ```{r apply_optimal}
+
 set.seed(2019)
 pn <- names(ktrain) #extract names to build formula
                  
-pr_names <- n[1:12]
+pr_names <- pn[1:12]
 
-f <- as.formula( paste( paste(pr_names, collapse = ' + ')  , paste(n[!n %in% n[1:12]], collapse = ' + '), sep = ' ~ '))
+f <- as.formula( paste( paste(pr_names, collapse = ' + ')  , paste(pn[!pn %in% pn[1:12]], collapse = ' + '), sep = ' ~ '))
 
 nn <- neuralnet(f,data=ktrain, hidden=c(100,20), threshold = .05, act.fct = 'logistic',
                       learningrate = .0005,  err.fct = 'ce', algorithm = 'rprop+',
