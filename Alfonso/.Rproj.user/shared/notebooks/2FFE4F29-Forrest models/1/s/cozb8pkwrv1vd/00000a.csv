@@ -1,2 +1,1 @@
-"0","kaggel<-data.frame(submission$id , submission$train_accuracy)"
-"0","kaggel"
+"0","write.csv(kaggel,file=""trees.csv"")"

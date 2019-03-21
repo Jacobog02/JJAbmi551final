@@ -1,0 +1,16 @@
+"0","```r
+full <- names(as.data.frame((read.table(\"../data/expression.txt\", row.names=1 ))))
+truth <- rownames(truth_set)
+# I couldn't figure out how to index columns v rows so this is what I got.
+for (t in truth) {
+  
+  if (t %in% full){
+    
+  }
+  else {
+    print(t)
+  }
+}
+```"
+"1","[1] \"184A1\"
+"

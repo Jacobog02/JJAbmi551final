@@ -1,0 +1,3 @@
+"0","merged<-cbind(testSort,test_exp)"
+"0","#merged"
+"0","write.table(expression, file= '../data/mergedExpression.txt', sep= '\t', na = 'NA')"

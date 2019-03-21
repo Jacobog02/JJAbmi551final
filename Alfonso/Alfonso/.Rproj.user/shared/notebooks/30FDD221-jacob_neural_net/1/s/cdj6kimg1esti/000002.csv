@@ -1,0 +1,25 @@
+"0","```r
+#Subset trainingdata
+# Transpose dataset to Feature Set (so each column is a feature)
+train <- data.frame(t(khan$train))
+# Make Vector of the truth_set
+classif <- khan$train.classes
+# Append Truthset to Feature set 
+ktrain <- data.frame(cbind(classif,train))
+# Now scale the data ( IN this case KIND OF SCALING GOES HERE)
+ktrain <- scale_data(ktrain)
+# Now convert the truthset into factors outputing vector.
+E.Ws <- c('EWS','RMS')
+E.W <- ktrain$classif %in% E.Ws
+# Mask the truthset into integers instead of strings. 
+# CONSIDER BINARY MASK OR MASKING ALL FEATURES
+ktrain <- ktrain[E.W,]
+ktrain <- E_recode(ktrain)
+# Now look at it!
+dim(ktrain)
+```"
+"1","[1]  44 307
+"
+"0","```r
+head(ktrain[,1:5])
+```"

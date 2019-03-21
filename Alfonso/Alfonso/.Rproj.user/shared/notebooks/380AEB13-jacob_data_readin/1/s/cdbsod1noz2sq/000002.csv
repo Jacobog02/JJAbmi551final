@@ -1,0 +1,18 @@
+"0","```r
+test_exp <- as.data.frame((read.table(\"../data/clean_expression.txt\", row.names=1 )))
+test_sub <- read_tsv(\"../data/clean_subtypes.txt\")
+test_truth <-  as.data.frame((read.table(\"../data/clean_training_answers.txt\", row.names=1 )))
+dim(test_exp)
+```"
+"1","[1] 18632    25
+"
+"0","```r
+dim(test_sub)
+```"
+"1","[1] 25  2
+"
+"0","```r
+dim(test_truth)
+```"
+"1","[1] 25 12
+"
