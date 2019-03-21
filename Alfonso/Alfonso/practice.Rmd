@@ -1,0 +1,15 @@
+---
+title: "practice forrest"
+output: html_document
+---
+```{r}
+library( randomForest)
+library(MASS)
+set.seed(1)
+Boston
+train = sample (1:nrow(Boston), nrow(Boston)/2)
+bag.boston= randomForest( crim∼.,data=Boston ,mtry=13,importance =TRUE)
+bag.boston
+
+```
+

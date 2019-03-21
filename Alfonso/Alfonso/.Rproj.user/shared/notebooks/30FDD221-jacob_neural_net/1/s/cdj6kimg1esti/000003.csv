@@ -1,0 +1,17 @@
+"0","```r
+#Subset Testing Data
+# Same thing
+test <- data.frame(t(khan$test))
+classif <- khan$test.classes
+ktest <- data.frame(cbind(classif,test))
+ktest <- scale_data(ktest)
+E.W <- ktest$classif %in% E.Ws
+ktest <- ktest[E.W,]
+ktest <- E_recode(ktest)
+dim(ktest)
+```"
+"1","[1]  11 307
+"
+"0","```r
+head(ktest[,1:5])
+```"

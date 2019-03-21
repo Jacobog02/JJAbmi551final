@@ -1,0 +1,1302 @@
+---
+title: "the shire"
+output: html_document
+---
+this file creates the 1% variance trees as well as writing them to a csv file that can be submitted to the kaggel challenge. This document works similar to the fangorn rmd file in the way that it optimizes random forest structure. level has a clean names filter applied to it to fix any lingering naming issues that may be present.  the variant file has a drug column applied to it one at a time so the first set is drug one and so on. This set is then run an initial time to get a baseline with the default settings of the randomforest() function including a split per tree of 3 and 500 trees. First the trees are optimized by seeing the error rate per tree and the overall out of bag rate for each model the graphing allows the user to see where the trees begin to level out. The user then manually adjusts the number of trees in the model until the graph shows a leveling out in the 3 categories.  Once this step is complete using the new tree count a loop is run where each model is created 20 times with varying splits from 1-20. From this the error rates for each model is displayed and the one with the lowest is chosen as the split number for the model. This new split number and tree number are then fed back into the randomforest() function and the final model is created for that drug/variance level combination. Then the predict function is run on each of the drug models and out puts a probability matrix for each of the drug cell line combinations this is saved under its drug cell line combination to a csv file named submission that is written out and used to submit to kaggel. 
+
+Note as above the code can get confusing  a key is below:
+
+Shirex= is the completed modle where x is the drug used in it
+
+Treex= the one percent variance table fed to the random forest model that is a concatenation of both the test set and the drug for that section
+
+```{r}
+sessionInfo()
+```
+
+```{r}
+set.seed(25000)
+library(tidyverse)
+library(ggplot2)
+library(cowplot)
+library(randomForest)
+library(parallel)
+library(skimr)
+library(broom)
+library(janitor)
+library(dplyr)
+library(readr)
+library(genefilter)
+
+```
+
+```{r import}
+# Read in the cleaned expression data
+expression <- as.data.frame((read.table("../data/clean_expression.txt", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+
+# Read in the subtype data
+subtypes <- read_tsv("../data/clean_subtypes.txt")
+
+# Read in the truth set
+truth_set <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+
+
+# Create merged feature set
+featureSet<-cbind(subtypes[,2],t(expression))
+
+#read in the submission table
+submission<-as.data.frame((read.csv("../data/scoring_and_test_set_id_mappings.csv")))
+submission[ , 'train_accuracy'] <- NA
+
+#read in the test sethead
+test<-as.data.frame(t(read.table("../data/clean_test_expression.txt", row.names=1 )))
+test<-clean_names(test)
+```
+#variance 
+```{r}
+#overview of variance 
+expVar <- (rowVars(expression))
+hist(expVar)
+expVar <- as.data.frame(expVar)
+names(expVar) <- c('variance')
+
+paste('max variance:', max(expVar[,1]))
+paste('min variance:', min(expVar[,1]))
+
+#top 1 of genes
+expVar %>% count((variance > '3.5'))
+top <- expVar$variance > 3.5
+root <- expression[top,]
+root<-data.frame(t(root))
+dim(root)
+```
+
+#drug 1
+```{r}
+#attaching the first drug to the test set
+tree1<-cbind(drug=truth_set[,1],root)
+tree1<-clean_names(tree1)
+tree1$drug<-factor(tree1$drug)
+
+```
+
+```{r}
+#creation of the foret
+set.seed(1)
+shire <- randomForest( drug∼.,data=tree1  ,mtry=3,ntree=1000)
+shire
+```
+
+```{r}
+#optimization of the trees
+set.seed(1)
+oob.error.shire <- data.frame(
+  Trees=rep(1:nrow(shire$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire$err.rate)),
+  Error=c(shire$err.rate[,"OOB"],
+    shire$err.rate[,"1"],
+    shire$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+#optimization of splits
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree1, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model 
+#assumes 0.48 nis the lowest 
+set.seed(1)
+shire <- randomForest( drug∼.,data=tree1  ,mtry=2,ntree=1000)
+shire
+```
+
+
+
+#drug 2
+```{r}
+#attaching the second drug to the test set
+tree2<-cbind(drug=truth_set[,2],root)
+tree2<-clean_names(tree2)
+tree2$drug<-factor(tree2$drug)
+
+```
+
+```{r}
+#creation of primary forest
+set.seed(1)
+shire2 <- randomForest( drug∼.,data=tree2  ,mtry=3,ntree=500)
+shire2
+```
+
+```{r}
+#optimization of trees
+set.seed(1)
+oob.error.shire2 <- data.frame(
+  Trees=rep(1:nrow(shire2$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire2$err.rate)),
+  Error=c(shire2$err.rate[,"OOB"],
+    shire2$err.rate[,"1"],
+    shire2$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire2, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree2, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.20 nis the lowest 
+set.seed(1)
+shire2 <- randomForest( drug∼.,data=tree2  ,mtry=2,ntree=500)
+shire2
+```
+
+#drug 3
+```{r}
+#attaching drug 3 to the test set
+tree3<-cbind(drug=truth_set[,3],root)
+tree3<-clean_names(tree3)
+tree3$drug<-factor(tree3$drug)
+
+```
+
+```{r}
+#primary model
+set.seed(1)
+shire3 <- randomForest( drug∼.,data=tree3  ,mtry=3,ntree=500)
+shire3
+```
+
+```{r}
+#optimization of trees
+set.seed(1)
+oob.error.shire3 <- data.frame(
+  Trees=rep(1:nrow(shire3$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire3$err.rate)),
+  Error=c(shire3$err.rate[,"OOB"],
+    shire3$err.rate[,"1"],
+    shire3$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire3, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree3, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.20 nis the lowest 
+set.seed(1)
+shire3 <- randomForest( drug∼.,data=tree3  ,mtry=9,ntree=500)
+shire3
+```
+#drug4
+```{r}
+#attaching the 4th drug to the data set
+tree4<-cbind(drug=truth_set[,4],root)
+tree4<-clean_names(tree4)
+tree4$drug<-factor(tree4$drug)
+
+```
+
+```{r}
+#primary model
+set.seed(1)
+shire4 <- randomForest( drug∼.,data=tree4  ,mtry=3,ntree=500)
+shire4
+```
+
+```{r}
+#optimising trees
+set.seed(1)
+oob.error.shire4 <- data.frame(
+  Trees=rep(1:nrow(shire4$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire4$err.rate)),
+  Error=c(shire4$err.rate[,"OOB"],
+    shire4$err.rate[,"1"],
+    shire4$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire4, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree4, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.32 nis the lowest 
+set.seed(1)
+shire2 <- randomForest( drug∼.,data=tree4  ,mtry=10,ntree=500)
+shire2
+```
+
+#drug5
+```{r}
+#attaching the fith drug to the data set
+tree5<-cbind(drug=truth_set[,5],root)
+tree5<-clean_names(tree5)
+tree5$drug<-factor(tree5$drug)
+
+```
+
+```{r}
+#primary model 
+set.seed(1)
+shire5 <- randomForest( drug∼.,data=tree5  ,mtry=3,ntree=1000)
+shire5
+```
+
+```{r}
+#optimising trees
+set.seed(1)
+oob.error.shire5 <- data.frame(
+  Trees=rep(1:nrow(shire5$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire5$err.rate)),
+  Error=c(shire5$err.rate[,"OOB"],
+    shire5$err.rate[,"1"],
+    shire5$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire5, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree5, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.32 nis the lowest 
+set.seed(1)
+shire5 <- randomForest( drug∼.,data=tree5  ,mtry=5,ntree=1000)
+shire5
+```
+#drug6
+```{r}
+#attaching drug 6 to the data set
+tree6<-cbind(drug=truth_set[,6],root)
+tree6<-clean_names(tree6)
+tree6$drug<-factor(tree6$drug)
+
+```
+
+```{r}
+#priomary model
+set.seed(1)
+shire6 <- randomForest( drug∼.,data=tree6  ,mtry=3,ntree=500)
+shire6
+```
+
+```{r}
+##optimization of trees
+set.seed(1)
+oob.error.shire6 <- data.frame(
+  Trees=rep(1:nrow(shire6$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire6$err.rate)),
+  Error=c(shire6$err.rate[,"OOB"],
+    shire6$err.rate[,"1"],
+    shire6$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire6, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree6, mtry=i, ntree=500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.32 nis the lowest 
+set.seed(1)
+shire6 <- randomForest( drug∼.,data=tree6  ,mtry=5,ntree=1000)
+shire6
+```
+#drug 7
+```{r}
+#attaching drug 7 to the data set
+tree7<-cbind(drug=truth_set[,7],root)
+tree7<-clean_names(tree7)
+tree7$drug<-factor(tree7$drug)
+
+```
+
+```{r}
+#primary model
+set.seed(1)
+shire7 <- randomForest( drug∼.,data=tree7  ,mtry=3,ntree=3000)
+shire7
+```
+
+```{r}
+#optimization of trees
+set.seed(1)
+oob.error.shire7 <- data.frame(
+  Trees=rep(1:nrow(shire7$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire7$err.rate)),
+  Error=c(shire7$err.rate[,"OOB"],
+    shire7$err.rate[,"1"],
+    shire7$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire7, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree7, mtry=i, ntree=3000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.32 nis the lowest 
+set.seed(1)
+shire7 <- randomForest( drug∼.,data=tree7  ,mtry=6,ntree=3000)
+shire7
+```
+#drug 8
+```{r}
+#attaching drug 8 to the data set
+tree8<-cbind(drug=truth_set[,8],root)
+tree8<-clean_names(tree8)
+tree8$drug<-factor(tree8$drug)
+
+```
+
+```{r}
+#primary model
+set.seed(1)
+shire8 <- randomForest( drug∼.,data=tree8  ,mtry=3,ntree=1000)
+shire8
+```
+
+```{r}
+#optimization of trees
+set.seed(1)
+oob.error.shire8 <- data.frame(
+  Trees=rep(1:nrow(shire8$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire8$err.rate)),
+  Error=c(shire8$err.rate[,"OOB"],
+    shire8$err.rate[,"1"],
+    shire8$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire8, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree8, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.24 nis the lowest 
+set.seed(1)
+shire8 <- randomForest( drug∼.,data=tree8  ,mtry=3,ntree=1000)
+shire8
+```
+#drug 9
+```{r}
+#attaching drug 9 to the data set
+tree9<-cbind(drug=truth_set[,9],root)
+tree9<-clean_names(tree9)
+tree9$drug<-factor(tree9$drug)
+
+```
+
+```{r}
+#primary model
+set.seed(1)
+shire9 <- randomForest( drug∼.,data=tree9  ,mtry=3,ntree=1000)
+shire9
+```
+
+```{r}
+#optimising trees
+set.seed(1)
+oob.error.shire9 <- data.frame(
+  Trees=rep(1:nrow(shire9$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire9$err.rate)),
+  Error=c(shire9$err.rate[,"OOB"],
+    shire9$err.rate[,"1"],
+    shire9$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire9, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree9, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.32 nis the lowest 
+set.seed(1)
+shire9 <- randomForest( drug∼.,data=tree9  ,mtry=3,ntree=1000)
+shire9
+```
+#drug 10
+```{r}
+#attaching drug 10 to the data set 
+tree10<-cbind(drug=truth_set[,10],root)
+tree10<-clean_names(tree10)
+tree10$drug<-factor(tree10$drug)
+
+```
+
+```{r}
+#primary model
+set.seed(1)
+shire10 <- randomForest( drug∼.,data=tree10  ,mtry=3,ntree=1500)
+shire10
+```
+
+```{r}
+#optimising trees
+set.seed(1)
+oob.error.shire10 <- data.frame(
+  Trees=rep(1:nrow(shire10$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire10$err.rate)),
+  Error=c(shire10$err.rate[,"OOB"],
+    shire10$err.rate[,"1"],
+    shire10$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire10, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree10, mtry=i, ntree=1500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final Model
+#assumes 0.32 nis the lowest 
+set.seed(1)
+shire10 <- randomForest( drug∼.,data=tree10  ,mtry=3,ntree=1500)
+shire10
+```
+#drug11
+```{r}
+#attaching drug 11 to the data set
+tree11<-cbind(drug=truth_set[,11],root)
+tree11<-clean_names(tree11)
+tree11$drug<-factor(tree11$drug)
+
+```
+
+```{r}
+#primary model
+set.seed(1)
+shire11<- randomForest( drug∼.,data=tree11  ,mtry=3,ntree=1000)
+shire11
+```
+
+```{r}
+#tree optimization
+set.seed(1)
+oob.error.shire11 <- data.frame(
+  Trees=rep(1:nrow(shire11$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire11$err.rate)),
+  Error=c(shire11$err.rate[,"OOB"],
+    shire11$err.rate[,"1"],
+    shire11$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire11, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree11, mtry=i, ntree=1000)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.32 nis the lowest 
+set.seed(1)
+shire11 <- randomForest( drug∼.,data=tree11  ,mtry=3,ntree=1000)
+shire11
+```
+
+#drug 12
+```{r}
+#attaching drug 12 to the test set
+tree12<-cbind(drug=truth_set[,12],root)
+tree12<-clean_names(tree12)
+tree12$drug<-factor(tree12$drug)
+
+```
+
+```{r}
+##primary model
+set.seed(1)
+shire12<- randomForest( drug∼.,data=tree12  ,mtry=3,ntree=1500)
+shire12
+```
+
+```{r}
+#tree optimization
+set.seed(1)
+oob.error.shire12 <- data.frame(
+  Trees=rep(1:nrow(shire12$err.rate), times=3),
+  Type=rep(c("OOB", "1", "0"), each=nrow(shire12$err.rate)),
+  Error=c(shire12$err.rate[,"OOB"],
+    shire12$err.rate[,"1"],
+    shire12$err.rate[,"0"]))
+
+ggplot(data=oob.error.shire12, aes(x=Trees, y=Error)) +
+  geom_line(aes(color=Type))+ggtitle("forest of 1% variance")
+```
+
+```{r}
+set.seed(1)
+#split optimization
+oob.values <- vector(length=20)
+for(i in 1:20) {
+  temp.model <- randomForest(drug ~ ., data=tree12, mtry=i, ntree=1500)
+  oob.values[i] <- temp.model$err.rate[nrow(temp.model$err.rate),1]
+}
+oob.values
+
+```
+
+```{r}
+#final model
+#assumes 0.32 nis the lowest 
+set.seed(1)
+shire11 <- randomForest( drug∼.,data=tree11  ,mtry=3,ntree=1500)
+shire11
+```
+
+#this is the section for the test set 
+
+```{r}
+#variance filtering of top 1%
+top <- expVar$variance > 3.5 
+test<- test[,(top)]
+test<-clean_names(test)
+colnames(test)[1]<-"x184a1"
+```
+#drug1
+```{r}
+#running of selected model
+pred.of = predict(shire,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="CGC-11047"))
+submission[ind, 5] <- pred.of[8,2]
+
+```
+
+
+#drug2
+```{r}
+#running of selected model
+pred.of = predict(shire2,test,type='prob')
+
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Carboplatin"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#drug3
+```{r}
+#running of selected model
+pred.of = predict(shire3,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Cisplatin"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#drug4
+```{r}
+#running of selected model
+pred.of = predict(shire4,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="GSK1070916"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#drug5
+```{r}
+#running of selected model
+pred.of = predict(shire5,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="GSK1120212"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#drug6
+```{r}
+#running of selected model
+pred.of = predict(shire6,test,type='prob')
+#writing to file
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="GSK461364"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#drug7
+```{r}
+#running of selected model
+pred.of = predict(shire7,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Geldanamycin"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#drug8
+```{r}
+#running of selected model
+pred.of = predict(shire,test,type='prob')
+
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Oxaliplatin"))
+submission[ind, 5] <- pred.of[8,2]
+
+
+```
+
+
+#drug9
+```{r}
+#running of selected model
+pred.of = predict(shire9,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="PF-3084014"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#drug10
+```{r}
+#running of selected model
+pred.of = predict(shire10,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="PF-3814735"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#drug11
+```{r}
+#running of selected model
+pred.of = predict(shire11,test,type='prob')
+
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="PF-4691502"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+
+#drug12
+```{r}
+#running of selected model
+pred.of = predict(shire12,test,type='prob')
+
+#write into the submission file
+
+ind <- which((submission[,1]=="HCC1187" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[4,2]
+
+ind <- which((submission[,1]=="MCF7" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[10,2]
+
+ind <- which((submission[,1]=="MDAMB361" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[13,2]
+
+ind <- which((submission[,1]=="MDAMB231" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[12,2]
+
+ind <- which((submission[,1]=="BT549" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[3,2]
+
+ind <- which((submission[,1]=="600MPE" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[1,2]
+
+ind <- which((submission[,1]=="HCC1954" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[5,2]
+
+ind <- which((submission[,1]=="SKBR3" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[14,2]
+
+ind <- which((submission[,1]=="MCF12A" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[9,2]
+
+ind <- which((submission[,1]=="HCC3153" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[6,2]
+
+ind <- which((submission[,1]=="MDAMB157" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[11,2]
+
+ind <- which((submission[,1]=="LY2" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[7,2]
+
+ind <- which((submission[,1]=="AU565" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[2,2]
+
+ind <- which((submission[,1]=="MCF10A" & submission[,2]=="Paclitaxel"))
+submission[ind, 5] <- pred.of[8,2]
+```
+
+#write to csv
+```{r}
+kaggel<-data.frame(submission$id , submission$train_accuracy)
+kaggel
+write.csv(kaggel,file="trees1%.csv")
+```
+```
+

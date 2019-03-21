@@ -1,0 +1,3704 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Fangorn},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Fangorn}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{}
+    \preauthor{}\postauthor{}
+    \date{}
+    \predate{}\postdate{}
+  
+
+\begin{document}
+\maketitle
+
+The purpose of this document is to create random forest models for the
+data set. This task is accomplished by taking the test data as subset it
+into three categories based on variance. A variance threshold of 0.5
+that incapsulates the top 20\% most variant genes, a variance threshold
+of 1 that incapsulates the top 10\% most variant genes, and a variance
+threshold of 1.5 that incapsulates the top 5\% most variant genes. A
+secondary RMD file was created later on to test for the top 1\% most
+variant genes. The decision was made for these thresholds after not
+having enough computing power to train on the entire dataset these
+filters were applied because it was felt that they would capture enough
+of the important variables present in the file to build a decent
+predictive model. After the training set is subset into its different
+category each variance level has a clean names filter applied to it to
+fix any lingering naming issues that may be present. Then each of the
+variant files has a drug column applied to it one at a time so the first
+set is drug one and so on. This set of three is then run an initial time
+to get a baseline with the default settings of the randomforest()
+function including a split per tree of 3 and 500 trees. First the trees
+are optimized by seeing the error rate per tree and the overall out of
+bag rate for each model the graphing allows the user to see where the
+trees begin to level out. The user then manually adjusts the number of
+trees in the model until the graph shows a leveling out in the 3
+categories. For each variance model this is optimized, once this step is
+complete using the new tree count a loop is run where each model is
+created 20 times with varying splits from 1-20. From this the error
+rates for each model is displayed and the one with the lowest is chosen
+as the split number for the model. This new split number and tree number
+are then fed back into the randomforest() function and the final model
+is created for that drug/variance level combination. This step is
+reproduced 12 times once for each drug resulting in the creation of 36
+over all models. From these models the model with the lowest out of bag
+error rate was chosen to move on to the next step.
+
+Note as the code can be slightly confusing due to its size a key is
+provided: oldForest=5\% variance model any number after this name is
+indicative of the drug used in combination with the model
+
+mirkwood=10\% variance model any number after this name is indicative of
+the drug used in combination with the model
+
+fangorn=20\% variance model any number after this name is indicative of
+the drug used in combination with the model
+
+treex5= the five percent variance table fed to the random forest model
+that is a concatenation of both the test set and the drug for that
+section
+
+treex10= the ten percent variance table fed to the random forest model
+that is a concatenation of both the test set and the drug for that
+section
+
+treex20= the twenty percent variance table fed to the random forest
+model that is a concatenation of both the test set and the drug for that
+section
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{sessionInfo}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## R version 3.5.1 (2018-07-02)
+## Platform: x86_64-w64-mingw32/x64 (64-bit)
+## Running under: Windows 10 x64 (build 17134)
+## 
+## Matrix products: default
+## 
+## locale:
+## [1] LC_COLLATE=English_United States.1252 
+## [2] LC_CTYPE=English_United States.1252   
+## [3] LC_MONETARY=English_United States.1252
+## [4] LC_NUMERIC=C                          
+## [5] LC_TIME=English_United States.1252    
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## loaded via a namespace (and not attached):
+##  [1] compiler_3.5.1  magrittr_1.5    tools_3.5.1     htmltools_0.3.6
+##  [5] yaml_2.2.0      Rcpp_1.0.0      stringi_1.3.1   rmarkdown_1.11 
+##  [9] knitr_1.21      stringr_1.4.0   xfun_0.4        digest_0.6.18  
+## [13] evaluate_0.13
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'tidyverse' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## -- Attaching packages ------------------------------------------------------------------------------------------------ tidyverse 1.2.1 --
+\end{verbatim}
+
+\begin{verbatim}
+## v ggplot2 3.1.0       v purrr   0.3.0  
+## v tibble  2.0.1       v dplyr   0.8.0.1
+## v tidyr   0.8.2       v stringr 1.4.0  
+## v readr   1.3.1       v forcats 0.4.0
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: package 'ggplot2' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: package 'tibble' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: package 'tidyr' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: package 'readr' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: package 'purrr' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: package 'dplyr' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: package 'stringr' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: package 'forcats' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## -- Conflicts --------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(ggplot2)}
+\KeywordTok{library}\NormalTok{(cowplot)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'cowplot' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Attaching package: 'cowplot'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:ggplot2':
+## 
+##     ggsave
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(randomForest)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'randomForest' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{verbatim}
+## randomForest 4.6-14
+\end{verbatim}
+
+\begin{verbatim}
+## Type rfNews() to see new features/changes/bug fixes.
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Attaching package: 'randomForest'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:ggplot2':
+## 
+##     margin
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(parallel)}
+\KeywordTok{library}\NormalTok{(skimr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'skimr' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(broom)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'broom' was built under R version 3.5.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(janitor)}
+\KeywordTok{library}\NormalTok{(dplyr)}
+\KeywordTok{library}\NormalTok{(readr)}
+\KeywordTok{library}\NormalTok{(genefilter)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'genefilter'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:readr':
+## 
+##     spec
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#library(parLapply)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Read in the cleaned expression data}
+\NormalTok{expression <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{((}\KeywordTok{read.table}\NormalTok{(}\StringTok{"../data/clean_expression.txt"}\NormalTok{, }\DataTypeTok{row.names=}\DecValTok{1}\NormalTok{ )))}
+\KeywordTok{rownames}\NormalTok{(expression)[}\DecValTok{1}\NormalTok{] <-}\StringTok{ '184A1'}\CommentTok{# Rename the only integer name}
+
+\CommentTok{# Read in the subtype data}
+\NormalTok{subtypes <-}\StringTok{ }\KeywordTok{read_tsv}\NormalTok{(}\StringTok{"../data/clean_subtypes.txt"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Parsed with column specification:
+## cols(
+##   cellline = col_character(),
+##   subtype = col_character()
+## )
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Read in the truth set}
+\NormalTok{truth_set <-}\StringTok{  }\KeywordTok{as.data.frame}\NormalTok{((}\KeywordTok{read.table}\NormalTok{(}\StringTok{"../data/clean_training_answers.txt"}\NormalTok{, }\DataTypeTok{row.names=}\DecValTok{1}\NormalTok{ )))}
+
+
+\CommentTok{# Create merged feature set}
+\NormalTok{featureSet<-}\KeywordTok{cbind}\NormalTok{(subtypes[,}\DecValTok{2}\NormalTok{],}\KeywordTok{t}\NormalTok{(expression))}
+\end{Highlighting}
+\end{Shaded}
+
+\section{variance}\label{variance}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#looking at the variance in the data set}
+\NormalTok{expVar <-}\StringTok{ }\NormalTok{(}\KeywordTok{rowVars}\NormalTok{(expression))}
+\KeywordTok{hist}\NormalTok{(expVar)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{expVar <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(expVar)}
+\KeywordTok{names}\NormalTok{(expVar) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{'variance'}\NormalTok{)}
+
+\KeywordTok{paste}\NormalTok{(}\StringTok{'max variance:'}\NormalTok{, }\KeywordTok{max}\NormalTok{(expVar[,}\DecValTok{1}\NormalTok{]))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "max variance: 11.2727797404595"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{paste}\NormalTok{(}\StringTok{'min variance:'}\NormalTok{, }\KeywordTok{min}\NormalTok{(expVar[,}\DecValTok{1}\NormalTok{]))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "min variance: 0.0149762247525575"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#top 20 of genes}
+\NormalTok{expVar }\OperatorTok{%>%}\StringTok{ }\KeywordTok{count}\NormalTok{((variance }\OperatorTok{>}\StringTok{ '0.5'}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 2
+##   `(variance > "0.5")`     n
+##   <lgl>                <int>
+## 1 FALSE                14835
+## 2 TRUE                  3797
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{top20 <-}\StringTok{ }\NormalTok{expVar}\OperatorTok{$}\NormalTok{variance }\OperatorTok{>}\StringTok{ }\FloatTok{0.5} 
+\NormalTok{root20 <-}\StringTok{ }\NormalTok{expression[top20,]}
+\NormalTok{root20<-}\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{t}\NormalTok{(root20))}
+\KeywordTok{dim}\NormalTok{(root20)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]   25 3797
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#top 10% of genes}
+\NormalTok{expVar }\OperatorTok{%>%}\StringTok{ }\KeywordTok{count}\NormalTok{((variance }\OperatorTok{>}\StringTok{ '1'}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 2
+##   `(variance > "1")`     n
+##   <lgl>              <int>
+## 1 FALSE              16824
+## 2 TRUE                1808
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{top10 <-}\StringTok{ }\NormalTok{expVar}\OperatorTok{$}\NormalTok{variance }\OperatorTok{>}\StringTok{ }\DecValTok{1} 
+\NormalTok{root10 <-}\StringTok{ }\NormalTok{expression[top10,]}
+\NormalTok{root10<-}\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{t}\NormalTok{(root10))}
+\KeywordTok{dim}\NormalTok{(root10)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]   25 1808
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#top 5% of genes}
+\NormalTok{expVar }\OperatorTok{%>%}\StringTok{ }\KeywordTok{count}\NormalTok{((variance }\OperatorTok{>}\StringTok{ '1.5'}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 2
+##   `(variance > "1.5")`     n
+##   <lgl>                <int>
+## 1 FALSE                17554
+## 2 TRUE                  1078
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{top5 <-}\StringTok{ }\NormalTok{expVar}\OperatorTok{$}\NormalTok{variance }\OperatorTok{>}\StringTok{ }\FloatTok{1.5} 
+\NormalTok{root5 <-}\StringTok{ }\NormalTok{expression[top5,]}
+\NormalTok{root5<-}\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{t}\NormalTok{(root5))}
+\KeywordTok{dim}\NormalTok{(root5)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]   25 1078
+\end{verbatim}
+
+\section{forest 1}\label{forest-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the first column of the truth set to the tree for each percent }
+\NormalTok{tree120<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{1}\NormalTok{],root20)}
+\NormalTok{tree120<-}\KeywordTok{clean_names}\NormalTok{(tree120)}
+\NormalTok{tree120}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree120}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree110<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{1}\NormalTok{],root10)}
+\NormalTok{tree110<-}\KeywordTok{clean_names}\NormalTok{(tree110)}
+\NormalTok{tree110}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree110}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree105<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{1}\NormalTok{],root5)}
+\NormalTok{tree105<-}\KeywordTok{clean_names}\NormalTok{(tree105)}
+\NormalTok{tree105}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree105}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree105  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{oldForest}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree105, mtry = 3, ntree = 2000) 
+##                Type of random forest: classification
+##                      Number of trees: 2000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 56%
+## Confusion matrix:
+##   0 1 class.error
+## 0 5 7   0.5833333
+## 1 7 6   0.5384615
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree110  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{mirkwood}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree110, mtry = 3, ntree = 2000) 
+##                Type of random forest: classification
+##                      Number of trees: 2000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 60%
+## Confusion matrix:
+##   0 1 class.error
+## 0 4 8   0.6666667
+## 1 7 6   0.5384615
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree120  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{fangorn}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree120, mtry = 3, ntree = 2000) 
+##                Type of random forest: classification
+##                      Number of trees: 2000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 56%
+## Confusion matrix:
+##   0 1 class.error
+## 0 5 7   0.5833333
+## 1 7 6   0.5384615
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/optimise trees optimise tree count drug 1-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/optimise trees optimise tree count drug 1-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/optimise trees optimise tree count drug 1-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree105, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.56 0.60 0.52 0.56 0.56 0.52 0.56 0.52 0.52 0.64 0.52 0.52 0.48 0.60
+## [15] 0.52 0.60 0.52 0.52 0.52 0.60
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree110, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.60 0.64 0.60 0.56 0.52 0.56 0.52 0.60 0.56 0.56 0.52 0.60 0.52 0.52
+## [15] 0.52 0.56 0.56 0.48 0.60 0.56
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree120, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.52 0.56 0.56 0.64 0.52 0.56 0.56 0.56 0.60 0.52 0.52 0.56 0.56 0.52
+## [15] 0.60 0.60 0.60 0.56 0.56 0.52
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\CommentTok{#assumes that 0.48 is the lowest}
+\NormalTok{oldForest <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree105  ,}\DataTypeTok{mtry=}\DecValTok{13}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{oldForest}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree105, mtry = 13, ntree = 2000) 
+##                Type of random forest: classification
+##                      Number of trees: 2000
+## No. of variables tried at each split: 13
+## 
+##         OOB estimate of  error rate: 52%
+## Confusion matrix:
+##   0 1 class.error
+## 0 5 7   0.5833333
+## 1 6 7   0.4615385
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assumes that 0.48 is the lowest}
+\NormalTok{mirkwood <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree110  ,}\DataTypeTok{mtry=}\DecValTok{18}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{mirkwood}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree110, mtry = 18, ntree = 2000) 
+##                Type of random forest: classification
+##                      Number of trees: 2000
+## No. of variables tried at each split: 18
+## 
+##         OOB estimate of  error rate: 56%
+## Confusion matrix:
+##   0 1 class.error
+## 0 4 8   0.6666667
+## 1 6 7   0.4615385
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assumes that 0.52 is the lowest }
+\NormalTok{fangorn <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree120  ,}\DataTypeTok{mtry=}\DecValTok{5}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{fangorn}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree120, mtry = 5, ntree = 2000) 
+##                Type of random forest: classification
+##                      Number of trees: 2000
+## No. of variables tried at each split: 5
+## 
+##         OOB estimate of  error rate: 60%
+## Confusion matrix:
+##   0 1 class.error
+## 0 5 7   0.5833333
+## 1 8 5   0.6153846
+\end{verbatim}
+
+\section{forest 2}\label{forest-2}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the second column of the truth set to the tree for each percent }
+\NormalTok{tree220<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{2}\NormalTok{],root20)}
+\NormalTok{tree220<-}\KeywordTok{clean_names}\NormalTok{(tree220)}
+\NormalTok{tree220}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree220}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree210<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{2}\NormalTok{],root10)}
+\NormalTok{tree210<-}\KeywordTok{clean_names}\NormalTok{(tree210)}
+\NormalTok{tree210}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree210}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree205<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{2}\NormalTok{],root5)}
+\NormalTok{tree205<-}\KeywordTok{clean_names}\NormalTok{(tree205)}
+\NormalTok{tree205}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree205}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest2 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree205  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree205, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 20%
+## Confusion matrix:
+##    0 1 class.error
+## 0 11 2   0.1538462
+## 1  3 9   0.2500000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood2 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree210  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{mirkwood2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree210, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 20%
+## Confusion matrix:
+##    0 1 class.error
+## 0 11 2   0.1538462
+## 1  3 9   0.2500000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn2 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree220  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree220, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 20%
+## Confusion matrix:
+##    0 1 class.error
+## 0 11 2   0.1538462
+## 1  3 9   0.2500000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest2 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest2}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest2}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest2}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest2}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest2}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood2 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood2}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood2}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood2}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood2}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood2}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn2<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn2}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn2}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn2}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn2}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn2}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest2, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug2-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood2, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug2-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn2, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug2-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree205, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.20 0.20 0.20 0.24 0.28 0.20 0.24 0.20 0.20 0.20 0.20 0.20 0.20 0.20
+## [15] 0.28 0.20 0.20 0.20 0.28 0.20
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree210, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.20 0.20 0.20 0.20 0.20 0.20 0.24 0.20 0.20 0.20 0.20 0.20 0.20 0.24
+## [15] 0.20 0.20 0.20 0.24 0.20 0.24
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree220, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.24 0.20 0.24 0.24 0.20 0.28 0.24 0.24 0.20 0.24 0.24 0.24 0.24 0.24
+## [15] 0.24 0.28 0.28 0.24 0.24 0.24
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest2 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree205  ,}\DataTypeTok{mtry=}\DecValTok{2}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree205, mtry = 2, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 20%
+## Confusion matrix:
+##    0 1 class.error
+## 0 11 2   0.1538462
+## 1  3 9   0.2500000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood2 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree210  ,}\DataTypeTok{mtry=}\DecValTok{2}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{mirkwood2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree210, mtry = 2, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 20%
+## Confusion matrix:
+##    0 1 class.error
+## 0 11 2   0.1538462
+## 1  3 9   0.2500000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn2 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree220  ,}\DataTypeTok{mtry=}\DecValTok{2}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree220, mtry = 2, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 24%
+## Confusion matrix:
+##    0 1 class.error
+## 0 10 3   0.2307692
+## 1  3 9   0.2500000
+\end{verbatim}
+
+\section{forest drug 3}\label{forest-drug-3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the third column of the truth set to the tree}
+\NormalTok{tree320<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{3}\NormalTok{],root20)}
+\NormalTok{tree320<-}\KeywordTok{clean_names}\NormalTok{(tree320)}
+\NormalTok{tree320}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree320}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree310<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{3}\NormalTok{],root10)}
+\NormalTok{tree310<-}\KeywordTok{clean_names}\NormalTok{(tree310)}
+\NormalTok{tree310}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree310}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree305<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{3}\NormalTok{],root5)}
+\NormalTok{tree305<-}\KeywordTok{clean_names}\NormalTok{(tree305)}
+\NormalTok{tree305}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree305}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest3 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree305  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{oldForest3}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree305, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 8%
+## Confusion matrix:
+##   0  1 class.error
+## 0 8  2         0.2
+## 1 0 15         0.0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood3 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree310  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood3}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree310, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 12%
+## Confusion matrix:
+##   0  1 class.error
+## 0 8  2  0.20000000
+## 1 1 14  0.06666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn3 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree320  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn3}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree320, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 16%
+## Confusion matrix:
+##   0  1 class.error
+## 0 7  3  0.30000000
+## 1 1 14  0.06666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest3 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest3}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest3}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest3}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest3}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest3}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood3 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood3}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood3}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood3}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood3}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood3}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn3<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn3}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn3}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn3}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn3}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn3}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest3, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug3-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood3, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug3-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn3, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug3-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree305, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.12 0.12 0.08 0.12 0.08 0.12 0.12 0.12 0.12 0.04 0.08 0.04 0.12 0.04
+## [15] 0.08 0.12 0.08 0.08 0.04 0.08
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree310, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.12 0.12 0.12 0.12 0.12 0.08 0.08 0.04 0.08 0.04 0.12 0.16 0.08 0.08
+## [15] 0.04 0.04 0.08 0.04 0.04 0.12
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree320, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.16 0.12 0.12 0.16 0.12 0.04 0.08 0.12 0.08 0.04 0.12 0.08 0.04 0.08
+## [15] 0.08 0.12 0.08 0.08 0.12 0.08
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest2 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree205  ,}\DataTypeTok{mtry=}\DecValTok{10}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{oldForest2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree205, mtry = 10, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 10
+## 
+##         OOB estimate of  error rate: 20%
+## Confusion matrix:
+##    0 1 class.error
+## 0 11 2   0.1538462
+## 1  3 9   0.2500000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood2 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree210  ,}\DataTypeTok{mtry=}\DecValTok{8}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree210, mtry = 8, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 8
+## 
+##         OOB estimate of  error rate: 20%
+## Confusion matrix:
+##    0 1 class.error
+## 0 11 2   0.1538462
+## 1  3 9   0.2500000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn2 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree220  ,}\DataTypeTok{mtry=}\DecValTok{6}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree220, mtry = 6, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 6
+## 
+##         OOB estimate of  error rate: 24%
+## Confusion matrix:
+##    0 1 class.error
+## 0 10 3   0.2307692
+## 1  3 9   0.2500000
+\end{verbatim}
+
+\section{drug 4}\label{drug-4}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the forth column of the truth set to the tree for each percent }
+\NormalTok{tree420<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{4}\NormalTok{],root20)}
+\NormalTok{tree420<-}\KeywordTok{clean_names}\NormalTok{(tree420)}
+\NormalTok{tree420}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree420}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree410<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{4}\NormalTok{],root10)}
+\NormalTok{tree410<-}\KeywordTok{clean_names}\NormalTok{(tree410)}
+\NormalTok{tree410}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree410}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree405<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{4}\NormalTok{],root5)}
+\NormalTok{tree405<-}\KeywordTok{clean_names}\NormalTok{(tree405)}
+\NormalTok{tree405}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree405}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest4 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree405  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest4}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree405, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##    0 1 class.error
+## 0 16 1  0.05882353
+## 1  8 0  1.00000000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood4 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree410  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{mirkwood4}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree410, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##    0 1 class.error
+## 0 16 1  0.05882353
+## 1  8 0  1.00000000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn4 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree420  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn4}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree420, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 40%
+## Confusion matrix:
+##    0 1 class.error
+## 0 15 2   0.1176471
+## 1  8 0   1.0000000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest4 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest4}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest4}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest4}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest4}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest4}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood4 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood4}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood4}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood4}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood4}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood4}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn4<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn4}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn4}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn4}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn4}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn4}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest4, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 4-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood4, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 4-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn4, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 4-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree405, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.36 0.36 0.40 0.36 0.40 0.36 0.40 0.44 0.44 0.40 0.40 0.36 0.40 0.36
+## [15] 0.40 0.40 0.40 0.44 0.40 0.36
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree410, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.32 0.40 0.44 0.40 0.40 0.36 0.40 0.44 0.40 0.36 0.44 0.40 0.40 0.40
+## [15] 0.40 0.32 0.36 0.40 0.40 0.40
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree420, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.32 0.32 0.36 0.36 0.32 0.36 0.36 0.36 0.32 0.36 0.36 0.36 0.36 0.36
+## [15] 0.36 0.36 0.36 0.36 0.40 0.40
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest4 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree405  ,}\DataTypeTok{mtry=}\DecValTok{2}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{oldForest4}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree405, mtry = 2, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 32%
+## Confusion matrix:
+##    0 1 class.error
+## 0 17 0           0
+## 1  8 0           1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood4 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree410  ,}\DataTypeTok{mtry=}\DecValTok{1}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood4}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree410, mtry = 1, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 1
+## 
+##         OOB estimate of  error rate: 32%
+## Confusion matrix:
+##    0 1 class.error
+## 0 17 0           0
+## 1  8 0           1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn4 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree420  ,}\DataTypeTok{mtry=}\DecValTok{2}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn4}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree420, mtry = 2, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##    0 1 class.error
+## 0 16 1  0.05882353
+## 1  8 0  1.00000000
+\end{verbatim}
+
+\section{drug 5}\label{drug-5}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the fith column of the truth set to the tree}
+\NormalTok{tree520<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{5}\NormalTok{],root20)}
+\NormalTok{tree520<-}\KeywordTok{clean_names}\NormalTok{(tree520)}
+\NormalTok{tree520}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree520}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree510<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{5}\NormalTok{],root10)}
+\NormalTok{tree510<-}\KeywordTok{clean_names}\NormalTok{(tree510)}
+\NormalTok{tree510}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree510}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree505<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{5}\NormalTok{],root5)}
+\NormalTok{tree505<-}\KeywordTok{clean_names}\NormalTok{(tree505)}
+\NormalTok{tree505}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree505}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree505  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree505, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##   0  1 class.error
+## 0 6  4         0.4
+## 1 3 12         0.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree510  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree510, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##   0  1 class.error
+## 0 5  5   0.5000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree520  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree520, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##   0  1 class.error
+## 0 5  5   0.5000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest5 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest5}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest5}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest5}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest5}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest5}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood5 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood5}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood5}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood5}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood5}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood5}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn5<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn5}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn5}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn5}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn5}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn5}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest5, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 5-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood5, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 5-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn5, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 5-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree505, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.36 0.28 0.32 0.36 0.28 0.32 0.36 0.24 0.28 0.36 0.40 0.32 0.28 0.32
+## [15] 0.28 0.32 0.36 0.40 0.28 0.28
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree510, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.32 0.28 0.28 0.36 0.28 0.32 0.32 0.28 0.32 0.28 0.32 0.28 0.28 0.28
+## [15] 0.28 0.32 0.36 0.28 0.32 0.28
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree520, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.36 0.28 0.32 0.28 0.28 0.28 0.32 0.32 0.32 0.32 0.32 0.28 0.28 0.32
+## [15] 0.28 0.28 0.28 0.32 0.24 0.28
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree505  ,}\DataTypeTok{mtry=}\DecValTok{8}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree505, mtry = 8, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 8
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##   0  1 class.error
+## 0 5  5   0.5000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree510  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree510, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##   0  1 class.error
+## 0 5  5   0.5000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree520  ,}\DataTypeTok{mtry=}\DecValTok{19}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree520, mtry = 19, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 19
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##   0  1 class.error
+## 0 5  5   0.5000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\section{drug 6}\label{drug-6}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the sixth column of the truth set to the tree for all classes}
+\NormalTok{tree620<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{6}\NormalTok{],root20)}
+\NormalTok{tree620<-}\KeywordTok{clean_names}\NormalTok{(tree620)}
+\NormalTok{tree620}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree620}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree610<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{6}\NormalTok{],root10)}
+\NormalTok{tree610<-}\KeywordTok{clean_names}\NormalTok{(tree610)}
+\NormalTok{tree610}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree610}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree605<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{6}\NormalTok{],root5)}
+\NormalTok{tree605<-}\KeywordTok{clean_names}\NormalTok{(tree605)}
+\NormalTok{tree605}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree605}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest6 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree605  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest6}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree605, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##   0  1 class.error
+## 0 7  3   0.3000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood6 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree610  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{mirkwood5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree510, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##   0  1 class.error
+## 0 5  5   0.5000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn6 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree620  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn6}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree620, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##   0  1 class.error
+## 0 7  3   0.3000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest6 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest5}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest6}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest6}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest6}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest6}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood6 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood6}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood6}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood6}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood6}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood6}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn6<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn6}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn6}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn6}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn6}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn6}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest6, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 6-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood6, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 6-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn6, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 6-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree605, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.24 0.28 0.24 0.28 0.28 0.32 0.28 0.20 0.20 0.24 0.28 0.32 0.28 0.20
+## [15] 0.24 0.32 0.20 0.20 0.28 0.20
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree610, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.20 0.28 0.32 0.32 0.24 0.24 0.20 0.24 0.28 0.24 0.24 0.20 0.24 0.20
+## [15] 0.24 0.24 0.24 0.24 0.24 0.24
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree620, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.24 0.28 0.28 0.28 0.24 0.20 0.20 0.32 0.28 0.24 0.20 0.24 0.24 0.24
+## [15] 0.28 0.24 0.28 0.20 0.20 0.16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree605  ,}\DataTypeTok{mtry=}\DecValTok{8}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree605, mtry = 8, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 8
+## 
+##         OOB estimate of  error rate: 24%
+## Confusion matrix:
+##   0  1 class.error
+## 0 8  2   0.2000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree610  ,}\DataTypeTok{mtry=}\DecValTok{7}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{mirkwood5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree610, mtry = 7, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 7
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##   0  1 class.error
+## 0 7  3   0.3000000
+## 1 4 11   0.2666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree620  ,}\DataTypeTok{mtry=}\DecValTok{20}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree620, mtry = 20, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 20
+## 
+##         OOB estimate of  error rate: 20%
+## Confusion matrix:
+##   0  1 class.error
+## 0 8  2         0.2
+## 1 3 12         0.2
+\end{verbatim}
+
+\section{drug 7}\label{drug-7}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the seventh column of the truth set to the tree for all classes}
+\NormalTok{tree720<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{7}\NormalTok{],root20)}
+\NormalTok{tree720<-}\KeywordTok{clean_names}\NormalTok{(tree720)}
+\NormalTok{tree720}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree720}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree710<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{7}\NormalTok{],root10)}
+\NormalTok{tree710<-}\KeywordTok{clean_names}\NormalTok{(tree710)}
+\NormalTok{tree710}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree710}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree705<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{7}\NormalTok{],root5)}
+\NormalTok{tree705<-}\KeywordTok{clean_names}\NormalTok{(tree705)}
+\NormalTok{tree705}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree705}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest7 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree705  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1500}\NormalTok{)}
+\NormalTok{oldForest7}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree705, mtry = 3, ntree = 1500) 
+##                Type of random forest: classification
+##                      Number of trees: 1500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 60%
+## Confusion matrix:
+##   0  1 class.error
+## 0 2 10   0.8333333
+## 1 5  8   0.3846154
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood7<-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree710  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood7}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree710, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 56%
+## Confusion matrix:
+##   0  1 class.error
+## 0 2 10   0.8333333
+## 1 4  9   0.3076923
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn7 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree720  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{fangorn7}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree720, mtry = 3, ntree = 2000) 
+##                Type of random forest: classification
+##                      Number of trees: 2000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 56%
+## Confusion matrix:
+##   0 1 class.error
+## 0 3 9   0.7500000
+## 1 5 8   0.3846154
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest7 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest7}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest7}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest7}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest7}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest7}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood7 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood7}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood7}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood7}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood7}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood7}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn7<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn7}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn7}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn7}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn7}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn7}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest7, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 7-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood7, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 7-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn7, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 7-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree705, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.56 0.56 0.56 0.56 0.52 0.48 0.48 0.56 0.56 0.44 0.48 0.56 0.56 0.44
+## [15] 0.48 0.48 0.52 0.52 0.44 0.56
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree710, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.64 0.48 0.56 0.48 0.48 0.60 0.52 0.44 0.48 0.52 0.44 0.56 0.60 0.48
+## [15] 0.40 0.40 0.56 0.60 0.48 0.52
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree720, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.48 0.56 0.60 0.52 0.44 0.44 0.48 0.48 0.44 0.56 0.52 0.48 0.56 0.40
+## [15] 0.44 0.40 0.48 0.40 0.44 0.40
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+\CommentTok{#assuming 0.44 is the lowest}
+\NormalTok{oldForest5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree705  ,}\DataTypeTok{mtry=}\DecValTok{10}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1500}\NormalTok{)}
+\NormalTok{oldForest5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree705, mtry = 10, ntree = 1500) 
+##                Type of random forest: classification
+##                      Number of trees: 1500
+## No. of variables tried at each split: 10
+## 
+##         OOB estimate of  error rate: 48%
+## Confusion matrix:
+##   0  1 class.error
+## 0 3  9   0.7500000
+## 1 3 10   0.2307692
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming 0.40 is the lowest}
+\NormalTok{mirkwood5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree710  ,}\DataTypeTok{mtry=}\DecValTok{15}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree710, mtry = 15, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 15
+## 
+##         OOB estimate of  error rate: 48%
+## Confusion matrix:
+##   0 1 class.error
+## 0 4 8   0.6666667
+## 1 4 9   0.3076923
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming 0.40 is the lowest}
+\NormalTok{fangorn5 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree720  ,}\DataTypeTok{mtry=}\DecValTok{14}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{2000}\NormalTok{)}
+\NormalTok{fangorn5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree720, mtry = 14, ntree = 2000) 
+##                Type of random forest: classification
+##                      Number of trees: 2000
+## No. of variables tried at each split: 14
+## 
+##         OOB estimate of  error rate: 48%
+## Confusion matrix:
+##   0 1 class.error
+## 0 5 7   0.5833333
+## 1 5 8   0.3846154
+\end{verbatim}
+
+\section{drug 8}\label{drug-8}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the eigth column of the truth set to the tree for all clases}
+\NormalTok{tree820<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{8}\NormalTok{],root20)}
+\NormalTok{tree820<-}\KeywordTok{clean_names}\NormalTok{(tree820)}
+\NormalTok{tree820}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree820}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree810<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{8}\NormalTok{],root10)}
+\NormalTok{tree810<-}\KeywordTok{clean_names}\NormalTok{(tree810)}
+\NormalTok{tree810}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree810}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree805<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{8}\NormalTok{],root5)}
+\NormalTok{tree805<-}\KeywordTok{clean_names}\NormalTok{(tree805)}
+\NormalTok{tree805}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree805}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest8 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree805  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest8}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree805, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 24%
+## Confusion matrix:
+##   0  1 class.error
+## 0 7  5  0.41666667
+## 1 1 12  0.07692308
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood8<-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree810  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood8}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree810, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 32%
+## Confusion matrix:
+##   0  1 class.error
+## 0 5  7  0.58333333
+## 1 1 12  0.07692308
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn8 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree820  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1500}\NormalTok{)}
+\NormalTok{fangorn8}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree820, mtry = 3, ntree = 1500) 
+##                Type of random forest: classification
+##                      Number of trees: 1500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##   0  1 class.error
+## 0 7  5   0.4166667
+## 1 2 11   0.1538462
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest8 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest8}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest8}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest8}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest8}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest8}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood8 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood8}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood8}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood8}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood8}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood8}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn8<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn8}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn8}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn8}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn8}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn8}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest8, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 8-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood8, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 8-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn8, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 8-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree805, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.28 0.28 0.28 0.32 0.20 0.20 0.24 0.32 0.32 0.28 0.24 0.20 0.28 0.24
+## [15] 0.32 0.32 0.20 0.28 0.20 0.20
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree810, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.20 0.28 0.24 0.20 0.32 0.24 0.28 0.32 0.32 0.28 0.32 0.24 0.28 0.24
+## [15] 0.32 0.36 0.28 0.24 0.36 0.32
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree820, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.28 0.32 0.24 0.20 0.28 0.32 0.32 0.28 0.24 0.32 0.32 0.24 0.28 0.28
+## [15] 0.36 0.24 0.28 0.32 0.36 0.32
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\CommentTok{#assuming that 0.20 is the lowest}
+\NormalTok{oldForest8 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree805  ,}\DataTypeTok{mtry=}\DecValTok{5}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest8}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree805, mtry = 5, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 5
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##   0  1 class.error
+## 0 8  4   0.3333333
+## 1 3 10   0.2307692
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.20 is the lowest}
+\NormalTok{mirkwood8 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree810  ,}\DataTypeTok{mtry=}\DecValTok{4}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood8}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree810, mtry = 4, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 4
+## 
+##         OOB estimate of  error rate: 24%
+## Confusion matrix:
+##   0  1 class.error
+## 0 7  5  0.41666667
+## 1 1 12  0.07692308
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.20 is the lowest }
+\NormalTok{fangorn8 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree820  ,}\DataTypeTok{mtry=}\DecValTok{4}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1500}\NormalTok{)}
+\NormalTok{fangorn8}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree820, mtry = 4, ntree = 1500) 
+##                Type of random forest: classification
+##                      Number of trees: 1500
+## No. of variables tried at each split: 4
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##   0  1 class.error
+## 0 7  5   0.4166667
+## 1 2 11   0.1538462
+\end{verbatim}
+
+\section{drug 9}\label{drug-9}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the ninth column of the truth set to the tree for all classes}
+\NormalTok{tree920<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{9}\NormalTok{],root20)}
+\NormalTok{tree920<-}\KeywordTok{clean_names}\NormalTok{(tree920)}
+\NormalTok{tree920}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree920}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree910<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{9}\NormalTok{],root10)}
+\NormalTok{tree910<-}\KeywordTok{clean_names}\NormalTok{(tree910)}
+\NormalTok{tree910}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree910}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree905<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{9}\NormalTok{],root5)}
+\NormalTok{tree905<-}\KeywordTok{clean_names}\NormalTok{(tree905)}
+\NormalTok{tree905}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree905}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest9 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree905  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest9}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree905, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 32%
+## Confusion matrix:
+##    0 1 class.error
+## 0 12 2   0.1428571
+## 1  6 5   0.5454545
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood9<-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree910  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood9}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree910, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 52%
+## Confusion matrix:
+##   0 1 class.error
+## 0 9 5   0.3571429
+## 1 8 3   0.7272727
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn9 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree920  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1500}\NormalTok{)}
+\NormalTok{fangorn9}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree920, mtry = 3, ntree = 1500) 
+##                Type of random forest: classification
+##                      Number of trees: 1500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##    0 1 class.error
+## 0 13 1  0.07142857
+## 1  6 5  0.54545455
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest9 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest9}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest9}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest9}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest9}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest9}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood9 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood9}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood9}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood9}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood9}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood9}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn9<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn9}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn9}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn9}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn9}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn9}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest9, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 9-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood9, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 9-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn9, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 9-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree905, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.60 0.36 0.36 0.40 0.40 0.44 0.40 0.44 0.36 0.32 0.44 0.40 0.44 0.36
+## [15] 0.32 0.36 0.44 0.44 0.44 0.40
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree910, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.36 0.36 0.48 0.44 0.36 0.44 0.40 0.36 0.32 0.40 0.44 0.40 0.40 0.32
+## [15] 0.44 0.44 0.32 0.32 0.40 0.40
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree920, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.40 0.40 0.48 0.28 0.48 0.32 0.32 0.40 0.36 0.32 0.36 0.36 0.40 0.36
+## [15] 0.40 0.40 0.36 0.40 0.40 0.36
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\CommentTok{#assuming that 0.32 is the lowest}
+\NormalTok{oldForest9 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree905  ,}\DataTypeTok{mtry=}\DecValTok{10}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest9}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree905, mtry = 10, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 10
+## 
+##         OOB estimate of  error rate: 48%
+## Confusion matrix:
+##   0 1 class.error
+## 0 9 5   0.3571429
+## 1 7 4   0.6363636
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.32 is the lowest}
+\NormalTok{mirkwood9 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree910  ,}\DataTypeTok{mtry=}\DecValTok{9}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood9}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree910, mtry = 9, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 9
+## 
+##         OOB estimate of  error rate: 40%
+## Confusion matrix:
+##    0 1 class.error
+## 0 12 2   0.1428571
+## 1  8 3   0.7272727
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.28 is the lowest}
+\NormalTok{fangorn9 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree920  ,}\DataTypeTok{mtry=}\DecValTok{4}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1500}\NormalTok{)}
+\NormalTok{fangorn9}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree920, mtry = 4, ntree = 1500) 
+##                Type of random forest: classification
+##                      Number of trees: 1500
+## No. of variables tried at each split: 4
+## 
+##         OOB estimate of  error rate: 40%
+## Confusion matrix:
+##    0 1 class.error
+## 0 12 2   0.1428571
+## 1  8 3   0.7272727
+\end{verbatim}
+
+\section{drug 10}\label{drug-10}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping tenth column of the truth set to the tree for all classes}
+\NormalTok{tree1020<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{10}\NormalTok{],root20)}
+\NormalTok{tree1020<-}\KeywordTok{clean_names}\NormalTok{(tree1020)}
+\NormalTok{tree1020}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree1020}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree1010<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{10}\NormalTok{],root10)}
+\NormalTok{tree1010<-}\KeywordTok{clean_names}\NormalTok{(tree1010)}
+\NormalTok{tree1010}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree1010}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree1005<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{10}\NormalTok{],root5)}
+\NormalTok{tree1005<-}\KeywordTok{clean_names}\NormalTok{(tree1005)}
+\NormalTok{tree1005}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree1005}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest10 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1005  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest10}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1005, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##    0 1 class.error
+## 0 12 3         0.2
+## 1  4 6         0.4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood10<-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1010  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{mirkwood10}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1010, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##    0 1 class.error
+## 0 13 2   0.1333333
+## 1  5 5   0.5000000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn10 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1020  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn10}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1020, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 28%
+## Confusion matrix:
+##    0 1 class.error
+## 0 13 2   0.1333333
+## 1  5 5   0.5000000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest10 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest10}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest10}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest10}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest10}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest10}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood10 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood10}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood10}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood10}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood10}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood10}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn10<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn10}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn10}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn10}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn10}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn10}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest10, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 10-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood10, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 10-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn10, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 10-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree1005, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.36 0.24 0.32 0.20 0.24 0.28 0.24 0.28 0.32 0.28 0.36 0.28 0.32 0.28
+## [15] 0.24 0.32 0.24 0.32 0.32 0.36
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree1010, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.36 0.32 0.28 0.24 0.28 0.24 0.24 0.24 0.24 0.28 0.20 0.20 0.28 0.28
+## [15] 0.20 0.24 0.20 0.32 0.24 0.28
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree1020, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.32 0.28 0.28 0.36 0.28 0.32 0.28 0.24 0.32 0.28 0.28 0.28 0.28 0.24
+## [15] 0.28 0.32 0.36 0.28 0.28 0.24
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\CommentTok{#assuming that 0.20 is the lowest}
+\NormalTok{oldForest10 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1005  ,}\DataTypeTok{mtry=}\DecValTok{4}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest10}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1005, mtry = 4, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 4
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##    0 1 class.error
+## 0 12 3         0.2
+## 1  6 4         0.6
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.20 is the lowest}
+\NormalTok{mirkwood10 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1010  ,}\DataTypeTok{mtry=}\DecValTok{11}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{mirkwood10}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1010, mtry = 11,      ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 11
+## 
+##         OOB estimate of  error rate: 16%
+## Confusion matrix:
+##    0 1 class.error
+## 0 14 1  0.06666667
+## 1  3 7  0.30000000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.28 is the lowest}
+\NormalTok{fangorn10 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1020  ,}\DataTypeTok{mtry=}\DecValTok{8}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn10}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1020, mtry = 8, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 8
+## 
+##         OOB estimate of  error rate: 24%
+## Confusion matrix:
+##    0 1 class.error
+## 0 13 2   0.1333333
+## 1  4 6   0.4000000
+\end{verbatim}
+
+\section{drug 11}\label{drug-11}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the 11th column of the truth set to the tree for all classes}
+\NormalTok{tree1120<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{11}\NormalTok{],root20)}
+\NormalTok{tree1120<-}\KeywordTok{clean_names}\NormalTok{(tree1120)}
+\NormalTok{tree1120}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree1120}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree1110<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{11}\NormalTok{],root10)}
+\NormalTok{tree1110<-}\KeywordTok{clean_names}\NormalTok{(tree1110)}
+\NormalTok{tree1110}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree1110}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree1105<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{11}\NormalTok{],root5)}
+\NormalTok{tree1105<-}\KeywordTok{clean_names}\NormalTok{(tree1105)}
+\NormalTok{tree1105}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree1105}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest11 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1105  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest11}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1105, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 48%
+## Confusion matrix:
+##   0  1 class.error
+## 0 1  9         0.9
+## 1 3 12         0.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood11<-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1110  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood11}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1110, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 52%
+## Confusion matrix:
+##   0  1 class.error
+## 0 0 10         1.0
+## 1 3 12         0.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn11 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1120  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn11}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1120, mtry = 3, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 48%
+## Confusion matrix:
+##   0  1 class.error
+## 0 0 10   1.0000000
+## 1 2 13   0.1333333
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest11 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest11}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest11}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest11}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest11}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest11}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood11 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood11}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood11}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood11}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood11}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood11}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn11<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn11}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn11}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn11}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn11}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn11}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest11, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 11-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood11, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 11-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn11, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 11-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree1105, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.48 0.44 0.48 0.52 0.52 0.56 0.56 0.48 0.60 0.52 0.48 0.48 0.44 0.52
+## [15] 0.56 0.56 0.48 0.40 0.56 0.56
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree1110, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.52 0.48 0.44 0.56 0.48 0.52 0.52 0.52 0.56 0.52 0.48 0.52 0.48 0.52
+## [15] 0.44 0.60 0.52 0.48 0.52 0.60
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree1120, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.52 0.44 0.44 0.56 0.48 0.40 0.40 0.56 0.52 0.64 0.48 0.44 0.48 0.48
+## [15] 0.48 0.48 0.44 0.48 0.52 0.44
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\CommentTok{#assuming that 0.44 is the lowest}
+\NormalTok{oldForest11 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1105  ,}\DataTypeTok{mtry=}\DecValTok{2}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{oldForest11}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1105, mtry = 2, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 60%
+## Confusion matrix:
+##   0  1 class.error
+## 0 0 10   1.0000000
+## 1 5 10   0.3333333
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.44 is the lowest}
+\NormalTok{mirkwood11 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1110  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{mirkwood11}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1110, mtry = 3, ntree = 1000) 
+##                Type of random forest: classification
+##                      Number of trees: 1000
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 52%
+## Confusion matrix:
+##   0  1 class.error
+## 0 0 10         1.0
+## 1 3 12         0.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.40 is the lowest}
+\NormalTok{fangorn11 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1120  ,}\DataTypeTok{mtry=}\DecValTok{6}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{500}\NormalTok{)}
+\NormalTok{fangorn11}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1120, mtry = 6, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 6
+## 
+##         OOB estimate of  error rate: 48%
+## Confusion matrix:
+##   0  1 class.error
+## 0 1  9         0.9
+## 1 3 12         0.2
+\end{verbatim}
+
+\section{drug 12}\label{drug-12}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#straping the 12th column of the truth set to the tree for all classes}
+\NormalTok{tree1220<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{12}\NormalTok{],root20)}
+\NormalTok{tree1220<-}\KeywordTok{clean_names}\NormalTok{(tree1220)}
+\NormalTok{tree1220}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree1220}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree1210<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{12}\NormalTok{],root10)}
+\NormalTok{tree1210<-}\KeywordTok{clean_names}\NormalTok{(tree1210)}
+\NormalTok{tree1210}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree1210}\OperatorTok{$}\NormalTok{drug)}
+
+
+\NormalTok{tree1205<-}\KeywordTok{cbind}\NormalTok{(}\DataTypeTok{drug=}\NormalTok{truth_set[,}\DecValTok{12}\NormalTok{],root5)}
+\NormalTok{tree1205<-}\KeywordTok{clean_names}\NormalTok{(tree1205)}
+\NormalTok{tree1205}\OperatorTok{$}\NormalTok{drug<-}\KeywordTok{factor}\NormalTok{(tree1205}\OperatorTok{$}\NormalTok{drug)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\NormalTok{oldForest12 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1205  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{750}\NormalTok{)}
+\NormalTok{oldForest12}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1205, mtry = 3, ntree = 750) 
+##                Type of random forest: classification
+##                      Number of trees: 750
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 40%
+## Confusion matrix:
+##   0  1 class.error
+## 0 1  9  0.90000000
+## 1 1 14  0.06666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mirkwood12<-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1210  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{750}\NormalTok{)}
+\NormalTok{mirkwood12}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1210, mtry = 3, ntree = 750) 
+##                Type of random forest: classification
+##                      Number of trees: 750
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 44%
+## Confusion matrix:
+##   0  1 class.error
+## 0 0 10  1.00000000
+## 1 1 14  0.06666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fangorn12 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1220  ,}\DataTypeTok{mtry=}\DecValTok{3}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{750}\NormalTok{)}
+\NormalTok{fangorn12}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1220, mtry = 3, ntree = 750) 
+##                Type of random forest: classification
+##                      Number of trees: 750
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 48%
+## Confusion matrix:
+##   0  1 class.error
+## 0 0 10   1.0000000
+## 1 2 13   0.1333333
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 5% tree}
+\NormalTok{oob.error.oldForest12 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(oldForest12}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(oldForest12}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(oldForest12}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    oldForest12}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    oldForest12}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 10% tree}
+\NormalTok{oob.error.mirkwood12 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(mirkwood12}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(mirkwood12}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(mirkwood12}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    mirkwood12}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    mirkwood12}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization for 20% tree}
+\NormalTok{oob.error.fangorn12<-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}
+  \DataTypeTok{Trees=}\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(fangorn12}\OperatorTok{$}\NormalTok{err.rate), }\DataTypeTok{times=}\DecValTok{3}\NormalTok{),}
+  \DataTypeTok{Type=}\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"OOB"}\NormalTok{, }\StringTok{"1"}\NormalTok{, }\StringTok{"0"}\NormalTok{), }\DataTypeTok{each=}\KeywordTok{nrow}\NormalTok{(fangorn12}\OperatorTok{$}\NormalTok{err.rate)),}
+  \DataTypeTok{Error=}\KeywordTok{c}\NormalTok{(fangorn12}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"OOB"}\NormalTok{],}
+\NormalTok{    fangorn12}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"1"}\NormalTok{],}
+\NormalTok{    fangorn12}\OperatorTok{$}\NormalTok{err.rate[,}\StringTok{"0"}\NormalTok{]))}
+
+\CommentTok{#tree optimization plot for 5% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.oldForest12, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 5% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 12-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization plot for 10% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.mirkwood12, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 10% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 12-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#tree optimization for 20% tree}
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\NormalTok{oob.error.fangorn12, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Trees, }\DataTypeTok{y=}\NormalTok{Error)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color=}\NormalTok{Type))}\OperatorTok{+}\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"forest of 20% variance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Fangorn_files/figure-latex/tree optimization drug 12-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#split optimization}
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree1205, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{750}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.48 0.44 0.52 0.48 0.48 0.48 0.44 0.48 0.44 0.52 0.48 0.52 0.52 0.44
+## [15] 0.52 0.48 0.44 0.48 0.52 0.48
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree1210, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{750}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.44 0.44 0.48 0.44 0.44 0.48 0.52 0.48 0.48 0.44 0.44 0.52 0.44 0.44
+## [15] 0.48 0.52 0.40 0.44 0.44 0.48
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oob.values <-}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\DataTypeTok{length=}\DecValTok{20}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{20}\NormalTok{) \{}
+\NormalTok{  temp.model <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{(drug }\OperatorTok{~}\StringTok{ }\NormalTok{., }\DataTypeTok{data=}\NormalTok{tree1220, }\DataTypeTok{mtry=}\NormalTok{i, }\DataTypeTok{ntree=}\DecValTok{750}\NormalTok{)}
+\NormalTok{  oob.values[i] <-}\StringTok{ }\NormalTok{temp.model}\OperatorTok{$}\NormalTok{err.rate[}\KeywordTok{nrow}\NormalTok{(temp.model}\OperatorTok{$}\NormalTok{err.rate),}\DecValTok{1}\NormalTok{]}
+\NormalTok{\}}
+\NormalTok{oob.values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.48 0.48 0.52 0.48 0.52 0.48 0.48 0.48 0.44 0.48 0.48 0.52 0.48 0.48
+## [15] 0.48 0.40 0.40 0.52 0.48 0.48
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{25000}\NormalTok{)}
+\CommentTok{#BAROOM dont be hasty now}
+
+\CommentTok{#assuming that 0.44 is the lowest}
+\NormalTok{oldForest12 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1205  ,}\DataTypeTok{mtry=}\DecValTok{2}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{750}\NormalTok{)}
+\NormalTok{oldForest12}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1205, mtry = 2, ntree = 750) 
+##                Type of random forest: classification
+##                      Number of trees: 750
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 44%
+## Confusion matrix:
+##   0  1 class.error
+## 0 0 10  1.00000000
+## 1 1 14  0.06666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.40 is the lowest}
+\NormalTok{mirkwood12 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1210  ,}\DataTypeTok{mtry=}\DecValTok{17}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{750}\NormalTok{)}
+\NormalTok{mirkwood12}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1210, mtry = 17,      ntree = 750) 
+##                Type of random forest: classification
+##                      Number of trees: 750
+## No. of variables tried at each split: 17
+## 
+##         OOB estimate of  error rate: 36%
+## Confusion matrix:
+##   0  1 class.error
+## 0 2  8  0.80000000
+## 1 1 14  0.06666667
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#assuming that 0.40 is the lowest}
+\NormalTok{fangorn12 <-}\StringTok{ }\KeywordTok{randomForest}\NormalTok{( drug∼.,}\DataTypeTok{data=}\NormalTok{tree1220  ,}\DataTypeTok{mtry=}\DecValTok{16}\NormalTok{,}\DataTypeTok{ntree=}\DecValTok{750}\NormalTok{)}
+\NormalTok{fangorn12}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = drug ~ ., data = tree1220, mtry = 16,      ntree = 750) 
+##                Type of random forest: classification
+##                      Number of trees: 750
+## No. of variables tried at each split: 16
+## 
+##         OOB estimate of  error rate: 40%
+## Confusion matrix:
+##   0  1 class.error
+## 0 2  8   0.8000000
+## 1 2 13   0.1333333
+\end{verbatim}
+
+
+\end{document}

@@ -1,0 +1,24 @@
+"0","```r
+# Double check all the dataframs have correct observations
+dim(expression)
+```"
+"1","[1] 18632    25
+"
+"0","```r
+dim(subtypes)
+```"
+"1","[1] 25  2
+"
+"0","```r
+dim(truth_set)
+```"
+"1","[1] 25 12
+"
+"0","```r
+# Write expression
+write.table(expression, file= '../data/clean_expression.txt', sep= '\t', na = 'NA')
+# Write subtypes
+write_tsv(subtypes, '../data/clean_subtypes.txt', na = \"NA\")
+# Write training set answers
+write.table(truth_set, '../data/clean_training_answers.txt', sep= '\t', na = \"NA\")
+```"

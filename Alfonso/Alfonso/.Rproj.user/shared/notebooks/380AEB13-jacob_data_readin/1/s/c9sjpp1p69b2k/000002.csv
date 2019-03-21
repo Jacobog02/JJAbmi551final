@@ -1,0 +1,21 @@
+"0","```r
+bool_idx <- function ( to_idx, match){
+  # Function takes two vectors and returns boolean index for first vector so you can only keep whats in both. 
+  # I made this bc I couldnt index rows with the columns names it was hard. 
+  
+  index <-  c()
+  
+  # I couldn't figure out how to index columns v rows so this is what I got.
+  for (i in to_idx) {
+    
+    if (i %in% match){
+      index <- c(index,TRUE)
+    }
+    else {
+      index <- c(index,FALSE)
+    }
+  }
+  
+  return(index)
+}
+```"

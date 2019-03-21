@@ -1,0 +1,7 @@
+"0","```r
+set.seed(2019)
+n <- names(ktrain)
+f <- as.formula(paste('classif ~', paste(n[!n %in% 'classif'], collapse = ' + ')))
+nn <- neuralnet(f,data=ktrain, hidden=5, learningrate = .5, linear.output = F, algorithm = 'backprop')
+plot(nn)
+```"

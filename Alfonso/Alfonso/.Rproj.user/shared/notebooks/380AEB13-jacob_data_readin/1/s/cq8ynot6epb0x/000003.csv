@@ -1,0 +1,13 @@
+"0","```r
+dim(truth_set) # Convert this to a table
+```"
+"1","[1] 25 12
+"
+"0","```r
+names(truth_set) # Show all the drugs were in study
+```"
+"1"," [1] \"CGC.11047\"    \"Carboplatin\"  \"Cisplatin\"   
+ [4] \"GSK1070916\"   \"GSK1120212\"   \"GSK461364\"   
+ [7] \"Geldanamycin\" \"Oxaliplatin\"  \"PF.3084014\"  
+[10] \"PF.3814735\"   \"PF.4691502\"   \"Paclitaxel\"  
+"

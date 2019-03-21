@@ -1,0 +1,20 @@
+"0","```r
+# compute train predictions
+train.pr <- neuralnet::compute(nn,ktrain[,2:ncol(ktrain)])
+train_result <- round(train.pr$net.result)
+# find train accuracy and append to vector
+train.acc <- perc_acc(train_result, ktrain[,1])
+  #compute test preditctions
+test.pr <- neuralnet::compute(nn,ktest[,2:ncol(ktest)])
+test_result <- round(test.pr$net.result)
+#find test accuracy and append to vector
+test.acc <- perc_acc(test_result,ktest[,1]) 
+paste('training accuracy: ', train.acc)
+```"
+"1","[1] \"training accuracy:  0.999999999999999\"
+"
+"0","```r
+paste('test accuracy: ', test.acc)
+```"
+"1","[1] \"test accuracy:  0.818181818181818\"
+"
