@@ -317,10 +317,9 @@ dim(featureSet)
 
 ### Subtype by Cell line
 
-```{r}
+```{r count_subtype}
 featureSet %>% count(subtype)
 
-featureSet%>% filter(subtype=='Normal-like')
 ```
 
 The number of observations for each subtype is heavily skewed. With the data we are given we would probably have better predictive power with determining the drug response for luminal subtypes (n=14), but the other subtypes only have 2 to 5 observations which is not that much data in each group. It will probably make our data anlysis harder because in the paper, the authors said that the cell line subtype created a decent naive model, but adding in transcriptome data gave the model more power to better predict drug responsiveness. 
