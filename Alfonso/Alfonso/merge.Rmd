@@ -1,0 +1,30 @@
+---
+title: "merge"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+```
+
+```{r}
+test_exp <- as.data.frame(t(read.table("../data/clean_expression.txt", row.names=1 )))
+rownames(test_exp)[1] <- '184A1'
+test_sub <- read_tsv("../data/clean_subtypes.txt")
+
+test_truth <-  as.data.frame((read.table("../data/clean_training_answers.txt", row.names=1 )))
+```
+
+```{r}
+
+exp_Sort <- with(test_exp,  test_exp[order(rownames(test_exp)) , ])
+sub_Sort <- with(test_sub,  test_sub[order(cellline) , ])
+truth_Sort <- with(test_truth,  test_truth[order(rownames(test_truth)) , ])
+
+```
+
+```{r}
+merged<-cbind(testSort[,2],test_exp)
+#merged
+write.table(merged, file= '../data/mergedExpression.txt', sep= '\t', na = 'NA')
+```
+

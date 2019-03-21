@@ -1,0 +1,10 @@
+"0","test_exp <- as.data.frame(t(read.table(""../data/clean_expression.txt"", row.names=1 )))"
+"0","rownames(test_exp)[1] <- '184A1'"
+"0","test_sub <- read_tsv(""../data/clean_subtypes.txt"")"
+"2","Parsed with column specification:
+cols(
+  cellline = [31mcol_character()[39m,
+  subtype = [31mcol_character()[39m
+)
+"
+"0","test_truth <-  as.data.frame((read.table(""../data/clean_training_answers.txt"", row.names=1 )))"

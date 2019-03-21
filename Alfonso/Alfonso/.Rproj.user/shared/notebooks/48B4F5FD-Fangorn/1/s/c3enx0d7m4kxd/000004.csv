@@ -1,0 +1,1 @@
+"0","exp <- as.data.frame(read.table(""../data/mergedExpression.txt"", row.names=1 ))"

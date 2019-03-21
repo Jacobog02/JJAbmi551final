@@ -1,0 +1,4 @@
+"0","#attaching the drug data"
+"0","tree810<-cbind(drug=truth_set[,8],root10)"
+"0","tree810<-clean_names(tree810)"
+"0","tree810$drug<-factor(tree810$drug)"

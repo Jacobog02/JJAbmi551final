@@ -1,0 +1,9 @@
+"0","expressionT <- as.data.frame(t(read.table(""../data/expression.txt"", row.names=1 )))"
+"0","expression <- as.data.frame((read.table(""../data/expression.txt"", row.names=1 )))"
+"0","subtypes <- read_delim(""../data/subtypes.txt"", ""\t"", escape_double = FALSE, trim_ws = TRUE)"
+"2","Parsed with column specification:
+cols(
+  cellline = [31mcol_character()[39m,
+  subtype = [31mcol_character()[39m
+)
+"

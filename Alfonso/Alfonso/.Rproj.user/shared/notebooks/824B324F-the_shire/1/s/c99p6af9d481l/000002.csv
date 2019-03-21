@@ -1,0 +1,4 @@
+"0","top <- expVar$variance > 3.5 "
+"0","test<- test[,(top)]"
+"0","test<-clean_names(test)"
+"0","colnames(test)[1]<-""x184a1"""

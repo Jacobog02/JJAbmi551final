@@ -1,0 +1,14 @@
+"0","```r
+library(tidyverse) # data manipulation
+library(neuralnet)# neural net library
+library(gridExtra) # for plot function
+library(grid) # for plot function
+source('jacob_multiplots.R')
+#library(tidyverse) # data manipulation
+library(made4) #data package
+#library(neuralnet)# neural net library
+#library(e1071) # SVM
+#library(gridExtra) # for plot function
+#library(grid) # for plot function
+data(khan)
+```"

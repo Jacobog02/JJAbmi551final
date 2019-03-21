@@ -1,0 +1,29 @@
+"0","```r
+# Read in the cleaned expression data
+expression <- as.data.frame((read.table(\"../data/clean_expression.txt\", row.names=1 )))
+rownames(expression)[1] <- '184A1'# Rename the only integer name
+# Read in the subtype data
+subtypes <- read_tsv(\"../data/clean_subtypes.txt\")
+# Read in the truth set
+truth_set <-  as.data.frame((read.table(\"../data/clean_training_answers.txt\", row.names=1 )))
+# Create merged feature set
+featureSet<-cbind(subtypes[,2],t(expression))
+dim(expression)
+```"
+"1","[1] 18632    25
+"
+"0","```r
+dim(subtypes)
+```"
+"1","[1] 25  2
+"
+"0","```r
+dim(truth_set)
+```"
+"1","[1] 25 12
+"
+"0","```r
+dim(featureSet)
+```"
+"1","[1]    25 18633
+"

@@ -1,0 +1,2 @@
+"0","Carseats =data.frame(Carseats ,High)"
+"0","tree.carseats =tree(High∼.-Sales , Carseats )"
