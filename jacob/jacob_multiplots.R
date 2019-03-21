@@ -19,7 +19,7 @@ library(gridExtra)
 library(grid)
 
 # Normally first argument is '...'
-grid_arrange_shared_legend <- function(plots, ncol = length(plots), nrow = 1, position = c("bottom", "right")) {
+grid_arrange_shared_legend <- function(plots, ncol = length(plots), nrow = 1, position = c("bottom", "right"), title = 'Title') {
   
   #plots <- list(...)
   position <- match.arg(position)
@@ -33,10 +33,12 @@ grid_arrange_shared_legend <- function(plots, ncol = length(plots), nrow = 1, po
   combined <- switch(position,
                      "bottom" = arrangeGrob(do.call(arrangeGrob, gl),
                                             legend,
+                                            top = title,
                                             ncol = 1,
                                             heights = unit.c(unit(1, "npc") - lheight, lheight)),
                      "right" = arrangeGrob(do.call(arrangeGrob, gl),
                                            legend,
+                                           top = title,
                                            ncol = 2,
                                            widths = unit.c(unit(1, "npc") - lwidth, lwidth)))
   
